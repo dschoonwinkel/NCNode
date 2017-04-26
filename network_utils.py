@@ -35,6 +35,19 @@ def get_first_HWAddr():
 
         return hw_addr
 
+def get_first_NicName():
+    result = subprocess.check_output(["ifconfig"])
+    # logger.debug('output = %s' % result)
+
+    if result.find("HWaddr") == -1:
+        logger.warn("HW Addr not found, therefore returning None")
+        return None
+
+    elif result:
+        result = result.split(" ")
+        hw_name = result[0]
+        return hw_name
+
 
 def get_HWAddr(ifacename):
     result = subprocess.check_output(["ifconfig", ifacename])

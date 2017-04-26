@@ -15,9 +15,11 @@ class SharedState(object):
         #Network state
         self.my_ip_addr = "0.0.0.0"
         # self.my_hw_addr = "00:00:00:00:00:00"
-        self.my_hw_addr = network_utils.get_HWAddr("eth1")
-        self.ack_retries = 0                        # number of retries before ACK waiter thread stops retransmitting
-        self.ack_retry_time = 2
+        # self.my_hw_addr = network_utils.get_HWAddr("eth1")
+        self.my_hw_addr = network_utils.get_first_HWAddr()
+        self.my_nic_name = network_utils.get_first_NicName()
+        self.ack_retries = 2                        # number of retries before ACK waiter thread stops retransmitting
+        self.ack_retry_time = 30
         self.mac_to_port = dict()                    # dict(mac_addr, int) -- switch port on which to send out on, i.e. routing
         self.ip_to_mac = dict()                      # dict(IP, mac_addr) -- which MAC addr is closest to this IP, implicitly, which port should it be sent on. Used for routing
         self.ip_to_port = dict()                     # dict(IP, int) -- switch port on which to send out on, i.e. routing
@@ -70,6 +72,9 @@ class SharedState(object):
 
     def get_my_hw_addr(self):
         return self.my_hw_addr
+
+    def get_my_NicName(self):
+        return self.my_nic_name
 
     def get_neighbour_seqnr_sent(self, hw_addr):
         return self.neighbour_seqnr_sent[hw_addr]

@@ -25,6 +25,12 @@ class TestNetworkUtils(unittest.TestCase):
 		ip_pkt = network_utils.check_IPPacket(str(pkt))
 		self.assertEqual(None, ip_pkt, "Extracted Ip packet was not null")
 
+	def test_getNicName(self):
+		hw_name = network_utils.get_first_NicName()
+		self.assertEqual(hw_name, "h1-eth0")
+		# self.assertEqual(hw_name, "eth0")
+		self.assertNotEqual(hw_name, "lo", )
+
 def main():
 	suite = unittest.TestLoader().loadTestsFromTestCase(TestNetworkUtils)
 	unittest.TextTestRunner(verbosity=2).run(suite)

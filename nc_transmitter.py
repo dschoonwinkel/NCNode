@@ -28,7 +28,7 @@ class Transmitter(object):
 			# logger.debug(Encoded num", pkt.ENCODED_NUM
 
 			# Do packet encapsulation here...
-			self.logger.debug("my hw addr: %s" % self.sharedState.get_my_hw_addr())
+			# self.logger.debug("my hw addr: %s" % self.sharedState.get_my_hw_addr())
 			if len(pkt.encoded_pkts) == 0:
 				encap_pkt = scapy.Ether(src=self.sharedState.get_my_hw_addr(), dst=self.broadcast_HWAddr, type=COPE_classes.COPE_PACKET_TYPE)/pkt
 			elif len(pkt.encoded_pkts) == 1:

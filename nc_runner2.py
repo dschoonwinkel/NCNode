@@ -18,6 +18,8 @@ import scapy.all as scapy
 import crc_funcs
 import network_utils
 
+packetDispatcher = None
+
 def test_receiver(sharedState):
     
     streamOrderer = StreamOrderer(sharedState)
@@ -26,18 +28,19 @@ def test_receiver(sharedState):
     acksReceipts = ACKsReceipts(sharedState, decoder)
     networkListener = NetworkListener(sharedState, acksReceipts)
 
-def test_sender(sharedState):
-    
-    
+def setup_sender(sharedState):
+    global packetDispatcher
     transmitter = Transmitter(sharedState)
     addACKsReceipts = AddACKsReceipts(sharedState, transmitter)
     encoder = Encoder(sharedState, addACKsReceipts)
     packetDispatcher = PacketDispatcher(sharedState, encoder)
-    
+
     # Test with valid networkInstance
     networkInstanceAdapter = NetworkInstanceAdapter(network_utils.get_first_NicName())
     sharedState.networkInstance = networkInstanceAdapter
-    
+
+def test_sender(sharedState):
+
     cope_pkt = COPE_classes.COPE_packet()/scapy.IP()/scapy.Raw("NC Runner test")
     src_ip = sharedState.get_my_ip_addr()
     pkt_id_str = src_ip + str(1)
@@ -46,7 +49,7 @@ def test_sender(sharedState):
     cope_pkt.reports.append(COPE_classes.ReportHeader(src_ip='10.0.0.2', last_pkt=90, bit_map=int('00001111', 2)))
     cope_pkt.local_pkt_seq_num = 1
     cope_pkt.calc_checksum()
-    dstMAC = "00:00:00:00:00:01"
+    dstMAC = "00:00:00:00:00:02"
     cope_pkt.build()
     logger.debug("NC Runner: Encoded num %d" % len(cope_pkt.encoded_pkts))
 
@@ -62,30 +65,28 @@ def test_sender(sharedState):
     cope_pkt.local_pkt_seq_num = 2
     cope_pkt.calc_checksum()
     cope_pkt.show2()
-    dstMAC = "00:00:00:00:00:01"
+    dstMAC = "00:00:00:00:00:02"
     sharedState.addPacketToOutputQueue(dstMAC, cope_pkt)
     packetDispatcher.dispatch()
-    
-    
-
 
 def main():
 
     sharedState = SharedState()
     test_receiver(sharedState)
+    setup_sender(sharedState)
     time.sleep(2)
-    test_sender(sharedState)
 
 
 
     logger.info("Starting Runner loop")
     try:
-        while True:
-            pass
+        while (1):
+            raw_input()
+            test_sender(sharedState)
+
 
     except KeyboardInterrupt:
-        logger.info("Closing graciously")
-        
+        logger.info("Closing gracefully")
 
 
 if __name__ == '__main__':

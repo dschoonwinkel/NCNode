@@ -5,8 +5,7 @@ from nc_shared_state import SharedState
 from nc_enqueuer import Enqueuer
 from nc_stream_orderer import StreamOrderer
 from scapy.all import *
-from crc_checksum import crc_checksum
-from crc_hash import crc_hash
+import crc_funcs
 import coding_utils
 import COPE_packet_classes as COPE_classes
 import network_utils
