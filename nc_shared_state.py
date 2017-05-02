@@ -7,6 +7,7 @@ import logging.config
 import COPE_packet_classes as COPE_classes
 import scapy.all as scapy
 import network_utils
+import nc_scheduler
 
 class SharedState(object):
 
@@ -18,7 +19,9 @@ class SharedState(object):
         # self.my_hw_addr = network_utils.get_HWAddr("eth1")
         self.my_hw_addr = network_utils.get_first_HWAddr()
         self.my_nic_name = network_utils.get_first_NicName()
-        self.ack_retries = 2                        # number of retries before ACK waiter thread stops retransmitting
+        self.ack_retries = 2                         # number of retries before ACK waiter thread stops retransmitting
+        self.controlPktTimeout = 4                   # Timeout to wait for before acks and reports are sent as control packets
+        self.controlWaiterCheckInterval = 2              # Check interval for the Control Waiter
         self.ack_retry_time = 30
         self.mac_to_port = dict()                    # dict(mac_addr, int) -- switch port on which to send out on, i.e. routing
         self.ip_to_mac = dict()                      # dict(IP, mac_addr) -- which MAC addr is closest to this IP, implicitly, which port should it be sent on. Used for routing
@@ -51,6 +54,7 @@ class SharedState(object):
         self.neighbour_recp_rep = dict()             # dict(IP, Set())
         self.neighbour_recvd = dict()                 # dict(MAC, Set())
         self.ack_waiters = dict()                    # dict(tuple(neighbour, ack_id), ACKWaiterThread)    -- ACK waiter threads for each sent packet
+        self.controlPktWaiter = nc_scheduler.ControlPktWaiter(self)
 
         #Statistics + Counters
         self.packet_count_recv = 0
