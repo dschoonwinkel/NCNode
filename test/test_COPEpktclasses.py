@@ -34,6 +34,24 @@ class TestCOPEPktClasses(unittest.TestCase):
         cope_pkt.calc_checksum()
         self.assertEqual(cope_pkt.checksum, checksum_correct_value, "Checksum was incorrect after calculations")
 
+    def test_COPEpkt_checkneighbour(self):
+        cope_pkt = COPE_classes.COPE_packet()
+        hw_dest1 = "00:00:00:00:00:01"
+        hw_dest2 = "00:00:00:00:00:02"
+        hw_dest3 = "00:00:00:00:00:03"
+        hw_dest4 = "00:00:00:00:00:04"
+        header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
+        header2 = COPE_classes.EncodedHeader(pkt_id=2, nexthop=hw_dest2)
+        header3 = COPE_classes.EncodedHeader(pkt_id=3, nexthop=hw_dest3)
+
+        cope_pkt.encoded_pkts.append(header1)
+        cope_pkt.encoded_pkts.append(header2)
+        cope_pkt.encoded_pkts.append(header3)
+
+        self.assertTrue(cope_pkt.check_nexthops(hw_dest1), "Check must be true for hw_dest1")
+        self.assertTrue(cope_pkt.check_nexthops(hw_dest2), "Check must be true for hw_dest2")
+        self.assertTrue(cope_pkt.check_nexthops(hw_dest3), "Check must be true for hw_dest3")
+        self.assertFalse(cope_pkt.check_nexthops(hw_dest4), "Check must be true for hw_dest4")
 
 
 

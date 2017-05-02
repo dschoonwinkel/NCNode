@@ -17,6 +17,7 @@ class Encapsulator(object):
 
         ip_pkt = scapy.IP(src=self.sharedState.get_my_ip_addr(), dst=IP_addr) / scapy.UDP(dport=14541) / scapy.Raw(data)
         cope_pkt = COPE_classes.COPE_packet() / ip_pkt
+        cope_pkt.encoded_pkts.append(COPE_classes.EncodedHeader)
 
         # self.logger.debug(coding_utils.print_hex("IP packet hex", str(ip_pkt)))
         # cope_pkt.show2()

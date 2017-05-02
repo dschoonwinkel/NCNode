@@ -59,6 +59,21 @@ class COPE_packet(Packet):
             if encoded_header.nexthop == neighbour:
                 return encoded_header.pkt_id
 
+    def check_nexthops(self, neighbour):
+        # Check if neighbour is addressed in this packet's nexthops
+        for encoded_header in self.encoded_pkts:
+            if encoded_header.nexthop == neighbour:
+                return True
+
+        return False
+
+    @staticmethod
+    def generatePktId(src_ip, pkt_seq_no):
+        pkt_id_str = src_ip + str(pkt_seq_no)
+        pkt_id = crc_funcs.crc_hash(pkt_id_str)
+
+        return pkt_id
+
 
 def main():
   cope_pkt = COPE_packet()

@@ -188,6 +188,32 @@ class TestSharedState(unittest.TestCase):
         # pkt.show2()
         self.assertEqual(pkt, cope_pkt1, "Incorrect packet dequeued")
 
+    def test_wasPktIdReceivedTrue(self):
+        sharedState = nc_shared_state.SharedState()
+        dest_hw_addr = "00:00:00:00:00:02"
+
+        src_ip = sharedState.get_my_ip_addr()
+        pkt_id_str = src_ip + str(1)
+        pkt_id = crc_funcs.crc_hash(pkt_id_str)
+        cope_pkt1 = COPE_classes.COPE_packet() / scapy.Raw("NC Runner test2")
+        cope_pkt1.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
+
+        sharedState.addPacketToPacketPool(pkt_id, cope_pkt1)
+        self.assertTrue(sharedState.wasPktIdReceived(pkt_id))
+
+    def test_wasPktIdReceivedFalse(self):
+        sharedState = nc_shared_state.SharedState()
+        dest_hw_addr = "00:00:00:00:00:02"
+
+        src_ip = sharedState.get_my_ip_addr()
+        pkt_id_str = src_ip + str(1)
+        pkt_id = crc_funcs.crc_hash(pkt_id_str)
+        cope_pkt1 = COPE_classes.COPE_packet() / scapy.Raw("NC Runner test2")
+        cope_pkt1.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
+
+        self.assertFalse(sharedState.wasPktIdReceived(pkt_id))
+
+
 
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestSharedState)

@@ -8,6 +8,7 @@ import COPE_packet_classes as COPE_classes
 import scapy.all as scapy
 import network_utils
 import nc_scheduler
+import network_utils
 
 class SharedState(object):
 
@@ -103,6 +104,9 @@ class SharedState(object):
             return False
         # Check if the pkt_id is in the neighbour received set
         return pkt_id in self.neighbour_recvd[neighbour]
+
+    def wasPktIdReceived(self, pkt_id):
+        return pkt_id in self.packet_ids_recv
 
     def addACK_waiter(self, neighbour, ack_id, waiter):
         self.ack_waiters[(neighbour, ack_id)] = waiter
@@ -298,39 +302,41 @@ class SharedState(object):
 
     def scheduleReceipts(self, cope_pkt):
         receipt_header = COPE_classes.ReportHeader()
-        
-        ip_pkt = scapy.IP(str(cope_pkt.payload))
 
-        # BEWARE!! This assumes that ip ID field are set up beforehand to be sequential. Could change
-        # as the packet moves across the network, but should be fine for subnets
-        src_ip = ip_pkt.src
-        ip_seq_no = ip_pkt.id
-        receipt_header.src_ip = src_ip
-        receipt_header.last_pkt = ip_seq_no
+        ip_pkt = network_utils.check_IPPacket(cope_pkt.payload)
 
-        logging.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
+        # If the payload does not contain an IP packet, receipt reports can not be scheduled
+        if ip_pkt:
+            # BEWARE!! This assumes that ip ID field are set up beforehand to be sequential. Could change
+            # as the packet moves across the network, but should be fine for subnets
+            src_ip = ip_pkt.src
+            ip_seq_no = ip_pkt.id
+            receipt_header.src_ip = src_ip
+            receipt_header.last_pkt = ip_seq_no
 
-        if ip_pkt.src in self.receipts_history:
-            bit_map = self.receipts_history[src_ip]
-        else:
-            bit_map = 0
+            logging.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
 
-        # Shift the old bitmap completely out of the map by default
-        seq_no_difference = 8
+            if ip_pkt.src in self.receipts_history:
+                bit_map = self.receipts_history[src_ip]
+            else:
+                bit_map = 0
 
-        # Find the correct seqno distance, if not default
-        for report in reversed(self.receipts_queue):
-            if report.src_ip == src_ip:
-                seq_no_difference = ip_seq_no - report.last_pkt
-                break
+            # Shift the old bitmap completely out of the map by default
+            seq_no_difference = 8
 
-        # Shift the ackmap by the difference in seq_no
-        bit_map = (bit_map << seq_no_difference | 1) & 255
+            # Find the correct seqno distance, if not default
+            for report in reversed(self.receipts_queue):
+                if report.src_ip == src_ip:
+                    seq_no_difference = ip_seq_no - report.last_pkt
+                    break
 
-        self.receipts_history[src_ip] = bit_map
-        receipt_header.bit_map = bit_map
+            # Shift the ackmap by the difference in seq_no
+            bit_map = (bit_map << seq_no_difference | 1) & 255
 
-        self.receipts_queue.append(receipt_header)
+            self.receipts_history[src_ip] = bit_map
+            receipt_header.bit_map = bit_map
+
+            self.receipts_queue.append(receipt_header)
 
     def stopACKWaiters(self):
         print self.ack_waiters.keys()
