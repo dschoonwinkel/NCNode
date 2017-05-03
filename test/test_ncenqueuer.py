@@ -31,19 +31,22 @@ class TestEnqueuer(unittest.TestCase):
         hw_dest1 = "00:00:00:00:00:01"
         dst_ip = "10.0.0.123"
         # sharedState.ip_to_mac["10.0.0.123"] = hw_dest1
-
-        cope_pkt1 = COPE_classes.COPE_packet() / scapy.IP(dst=dst_ip)
-        header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
         payload1 = "\x01"
 
-        cope_pkt1.encoded_pkts.append(header1)
-        cope_pkt1.payload = scapy.Raw(payload1)
+        cope_pkt1 = COPE_classes.COPE_packet()
+        encap_packet = cope_pkt1/scapy.IP(dst=dst_ip)/scapy.Raw(payload1)
+        header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
 
-        enqueuer.enqueue(cope_pkt1)
+        cope_pkt1.encoded_pkts.append(header1)
+
+        enqueuer.enqueue(encap_packet)
         mockStreamOrderer.order_stream.assert_not_called()
+        print "Shared state packet queues", sharedState.packet_queues.keys()
+
+
+
         enqueued_pkt = sharedState.getPacketFromQueue(hw_dest1)
-        enqueued_pkt.show2()
-        self.assertEqual(enqueued_pkt, cope_pkt1)
+        self.assertEqual(enqueued_pkt, encap_packet)
 
 
     # def test_decodeNotNexthopEncoded(self):

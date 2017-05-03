@@ -1,7 +1,7 @@
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
 import network_utils
+import coding_utils
 
 
 class Enqueuer(object):
@@ -9,7 +9,7 @@ class Enqueuer(object):
         self.streamOrderer = streamOrderer
         self.sharedState = sharedState
         logging.config.fileConfig('logging.conf')
-        self.logger = logging.getLogger('nc_node.ncEncoder')
+        self.logger = logging.getLogger('nc_node.ncEnqueuer')
 
     def enqueue(self, cope_packet):
         # Enqueue packet, or send to application layer if
@@ -56,4 +56,5 @@ class Enqueuer(object):
                 # If IP address is not know, forward to everyone
                 else:
                     self.logger.error("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst)
+                    raise Exception("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst)
                     # self.sharedState.addPacketToOutputQueue(self.broadcast_HWAddr, cope_packet)

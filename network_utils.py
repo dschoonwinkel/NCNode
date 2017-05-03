@@ -73,13 +73,17 @@ def check_IPPacket(message_bytes):
     if len(message_bytes) >= 20:
         # logger.debug("Possible IP packet")
         ip_pkt = scapy.IP(message_bytes)
-        # ip_pkt.show2()
 
         payload_len = len(ip_pkt.payload)
         # logger.debug("total_pkt_len", len(message_bytes))
         # logger.debug("header len", (len(message_bytes) - payload_len))
         # logger.debug("payload len", payload_len)
         # logger.debug("Checksum", scapy.utils.checksum(message_bytes[:-payload_len]))
+
+        # If zero payload len is not treated correctly, entire packet is removed in substring error
+        if payload_len == 0:
+            if scapy.utils.checksum(message_bytes) == 0:
+                return ip_pkt
 
         if scapy.utils.checksum(message_bytes[:-payload_len]) == 0:
             # logger.debug("Checksum correct")
