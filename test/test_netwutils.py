@@ -27,8 +27,8 @@ class TestNetworkUtils(unittest.TestCase):
 
 	def test_getNicName(self):
 		hw_name = network_utils.get_first_NicName()
-		self.assertEqual(hw_name, "h1-eth0")
-		# self.assertEqual(hw_name, "eth0")
+		# self.assertEqual(hw_name, "h1-eth0")
+		self.assertEqual(hw_name, "eth0")
 		self.assertNotEqual(hw_name, "lo", )
 
 def main():

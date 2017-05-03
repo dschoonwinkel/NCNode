@@ -68,7 +68,8 @@ def get_HWAddr(ifacename):
 def check_IPPacket(message_bytes):
     # Check minimum IP header size
     ip_pkt = None
-    coding_utils.print_hex("Checking for IP packet", message_bytes)
+    message_bytes = str(message_bytes)
+    # logger.debug(coding_utils.print_hex("Checking for IP packet", message_bytes))
     if len(message_bytes) >= 20:
         # logger.debug("Possible IP packet")
         ip_pkt = scapy.IP(message_bytes)

@@ -67,12 +67,12 @@ class COPE_packet(Packet):
 
         return False
 
-    @staticmethod
-    def generatePktId(src_ip, pkt_seq_no):
-        pkt_id_str = src_ip + str(pkt_seq_no)
-        pkt_id = crc_funcs.crc_hash(pkt_id_str)
 
-        return pkt_id
+def generatePktId(src_ip, pkt_seq_no):
+    pkt_id_str = src_ip + str(pkt_seq_no)
+    pkt_id = crc_funcs.crc_hash(pkt_id_str)
+
+    return pkt_id
 
 
 def main():

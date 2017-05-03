@@ -11,7 +11,7 @@ logger = logging.getLogger('nc_node.test_ncsharedstate')
 
 class TestSharedState(unittest.TestCase):
     def test_scheduleACK(self):
-        logger.debug("\n\n Testing scheduleACK()")
+        # logger.debug("\n\n Testing scheduleACK()")
         sharedState = nc_shared_state.SharedState()
         neighbour = "00:00:00:01:00:00"
         seq_no = 1
@@ -30,11 +30,11 @@ class TestSharedState(unittest.TestCase):
         self.assertEqual(sharedState.ack_queue[-1].ack_map, 27)
 
     def test_scheduleReceipts(self):
-        logger.debug("\n\n Testing scheduleReceipts()")
+        # logger.debug("\n\n Testing scheduleReceipts()")
         sharedState = nc_shared_state.SharedState()
         neighbour = "00:00:00:01:00:00"
         ip_seq_no = 1
-        cope_pkt = COPE_classes.COPE_packet() / scapy.IP(id=ip_seq_no, src="10.0.0.1")
+        cope_pkt = COPE_classes.COPE_packet() / scapy.IP(id=ip_seq_no, src="10.0.0.1") / scapy.Raw("Hello!")
 
         sharedState.scheduleReceipts(cope_pkt)
         # sharedState.receipts_queue[-1].show2()

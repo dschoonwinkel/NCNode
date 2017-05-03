@@ -9,6 +9,7 @@ import scapy.all as scapy
 import network_utils
 import nc_scheduler
 import network_utils
+import coding_utils
 
 class SharedState(object):
 
@@ -30,6 +31,7 @@ class SharedState(object):
         self.pktid_to_buffer_id = dict()             # dict(pkt_id, int) -- maps COPE pkt_id to buffer_id. Used for dropping packets that should not be sent
         self.run_event = threading.Event()
         self.run_event.set()
+        self.local_ip_seq_num = 0
 
         #Interaction instances
         self.appInstance = None                        # Application instance (container) as traffic sink
@@ -81,8 +83,18 @@ class SharedState(object):
     def get_my_NicName(self):
         return self.my_nic_name
 
+    def getMACFromIP(self, ip_addr):
+        if ip_addr in self.ip_to_mac:
+            return self.ip_to_mac[ip_addr]
+        else:
+            raise Exception("MAC address for IP not found")
+
     def get_neighbour_seqnr_sent(self, hw_addr):
         return self.neighbour_seqnr_sent[hw_addr]
+
+    def getAndIncrementLocalSeqNum(self):
+        self.local_ip_seq_num += 1
+        return self.local_ip_seq_num
 
     def incrementNeighbourSeqnoSent(self, neighbour, number = 1):
         if neighbour not in self.neighbour_seqnr_sent:
