@@ -171,7 +171,10 @@ class SharedState(object):
         self.run_event.clear()
 
     def addPacketToPacketPool(self, pkt_id, cope_pkt):
+        # self.logger.debug("pkt_id %d" % pkt_id)
+        # cope_pkt.show2()
         self.packet_pool[pkt_id] = cope_pkt
+        # self.logger.debug("Packet pool keys() %s" % self.packet_pool.keys())
         self.packet_ids_recv.add(pkt_id)
         
     def addPacketToOutputQueue(self, dstMAC, cope_pkt):

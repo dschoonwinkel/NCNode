@@ -66,7 +66,7 @@ class Decoder(object):
         # Encoded packet, check if one of the packet are meant for me
         elif len(cope_pkt.encoded_pkts) >= 2 and cope_pkt.check_nexthops(self.sharedState.get_my_hw_addr()):
             self.logger.debug("Got encoded packet")
-            decoded_payload = coding_utils.extr_COPE_pkt(str(cope_pkt))[1]
+            decoded_payload = ""
             missing_headers = list()
             for header in cope_pkt.encoded_pkts:
                 if header.pkt_id not in self.sharedState.packet_ids_recv:
