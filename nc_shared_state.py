@@ -21,9 +21,11 @@ class SharedState(object):
         # self.my_hw_addr = network_utils.get_HWAddr("eth1")
         self.my_hw_addr = network_utils.get_first_HWAddr()
         self.my_nic_name = network_utils.get_first_NicName()
+        self.my_ip_addr = network_utils.get_first_IPAddr()
         self.ack_retries = 2                         # number of retries before ACK waiter thread stops retransmitting
         self.controlPktTimeout = 4                   # Timeout to wait for before acks and reports are sent as control packets
         self.controlWaiterCheckInterval = 2              # Check interval for the Control Waiter
+        self.min_buffer_len = 2                      # The minimum number of packet to be buffered before transmission starts
         self.ack_retry_time = 30
         self.mac_to_port = dict()                    # dict(mac_addr, int) -- switch port on which to send out on, i.e. routing
         self.ip_to_mac = dict()                      # dict(IP, mac_addr) -- which MAC addr is closest to this IP, implicitly, which port should it be sent on. Used for routing
@@ -73,6 +75,7 @@ class SharedState(object):
 
         logging.config.fileConfig('logging.conf')
         self.logger = logging.getLogger('nc_node.ncSharedState')
+        self.packetDispatcher = None
 
     def get_my_ip_addr(self):
         return self.my_ip_addr
@@ -182,6 +185,9 @@ class SharedState(object):
     def clearRunEvent(self):
         self.run_event.clear()
 
+    def setPacketDispatcher(self, packetDispatcher):
+        self.packetDispatcher = packetDispatcher
+
     def addPacketToPacketPool(self, pkt_id, cope_pkt):
         # self.logger.debug("pkt_id %d" % pkt_id)
         # cope_pkt.show2()
@@ -202,6 +208,15 @@ class SharedState(object):
             q.append(cope_pkt)
 
         self.output_queue_order.append(dstMAC)
+
+        # Start checking if the output buffer length is longer than the min buffer len
+        self.checkPacketDispatch()
+
+    # Prod the packet dispatcher to check if it can send packets yet
+    def checkPacketDispatch(self):
+        if self.packetDispatcher:
+            self.packetDispatcher.dispatch()
+
 
     def getPacketFromPacketPool(self, pkt_id):
         return self.packet_pool[pkt_id]
@@ -240,6 +255,8 @@ class SharedState(object):
     def getOutputQueueLen(self):
         return len(self.output_queue_order)
 
+    def getMinBufferLen(self):
+        return self.min_buffer_len
 
     def incrementPacketRecv(self, packets = 1):
         self.packet_count_recv += packets

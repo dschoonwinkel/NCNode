@@ -3,6 +3,7 @@ import scapy.all as scapy
 import coding_utils
 import logging
 import logging.config
+import re
 
 logging.config.fileConfig("logging.conf")
 logger = logging.getLogger("nc_node.network_utils")
@@ -91,11 +92,21 @@ def check_IPPacket(message_bytes):
 
     return None
 
+def ipToListenerPort(ip_addr):
+    ip_addr = str(ip_addr)
+    port_str = re.sub('[.]', '', ip_addr)
+    return int(port_str)
+
 
 if __name__ == '__main__':
     ip_addr = get_first_IPAddr()
     hw_addr = get_first_HWAddr()
-    hw_addr2 = get_HWAddr("eth0")
+    # hw_addr2 = get_HWAddr("eth0")
+    # hw_addr2 = get_HWAddr("h1-eth0")
+    # hw_addr2 = get_HWAddr("h2-eth0")
     logger.debug("Ip addr: %s" % str(ip_addr))
     logger.debug("HW addr: %s" % str(hw_addr))
-    logger.debug("Eth0 HW addr: %s" % str(hw_addr2))
+    # logger.debug("Eth0 HW addr: %s" % str(hw_addr2))
+    logger.debug("Port number %d" % ipToListenerPort(ip_addr))
+
+

@@ -17,8 +17,51 @@ import time
 import scapy.all as scapy
 import crc_funcs
 import network_utils
+import nc_encapsulator
+import nc_udpstreamreader
+
 
 packetDispatcher = None
+network_node_list = list(["10.0.0.1", "10.0.0.2"])
+streamHandlers = list()
+
+def setup_NCNode(sharedState):
+    # Receiver side
+    streamOrderer = StreamOrderer(sharedState)
+    enqueuer = Enqueuer(sharedState, streamOrderer)
+    decoder = Decoder(sharedState, enqueuer)
+    acksReceipts = ACKsReceipts(sharedState, decoder)
+    networkListener = NetworkListener(sharedState, acksReceipts)
+
+    # Input side
+    sharedState.ip_to_mac["10.0.0.2"] = "00:00:00:00:00:02"
+    sharedState.ip_to_mac["10.0.0.1"] = "00:00:00:00:00:01"
+    encapsulator = nc_encapsulator.Encapsulator(sharedState, enqueuer)
+
+    # TODO: Improve this, this should not be hardcoded
+    global network_node_list, streamHandlers
+    print sharedState.get_my_ip_addr()
+    network_node_list.remove(sharedState.get_my_ip_addr())
+    # Start listener on each port that represents a node in the network
+    for ip_addr in network_node_list:
+        listener_port = network_utils.ipToListenerPort(ip_addr)
+        logger.debug("Starting streamHandler on ")
+        streamHandler = nc_udpstreamreader.UDPStreamHandler(sharedState, listener_port, encapsulator)
+        streamHandler.start()
+        streamHandlers.append(streamHandler)
+
+    # Sender side
+    global packetDispatcher
+    transmitter = Transmitter(sharedState)
+    addACKsReceipts = AddACKsReceipts(sharedState, transmitter)
+    encoder = Encoder(sharedState, addACKsReceipts)
+    packetDispatcher = PacketDispatcher(sharedState, encoder)
+
+    # Test with valid networkInstance
+    networkInstanceAdapter = NetworkInstanceAdapter(network_utils.get_first_NicName())
+    sharedState.networkInstance = networkInstanceAdapter
+
+    sharedState.setPacketDispatcher(packetDispatcher)
 
 def test_receiver(sharedState):
     
@@ -72,8 +115,10 @@ def test_sender(sharedState):
 def main():
 
     sharedState = SharedState()
-    test_receiver(sharedState)
-    setup_sender(sharedState)
+    setup_NCNode(sharedState)
+    # test_receiver(sharedState)
+    # setup_sender(sharedState)
+
     time.sleep(2)
 
 

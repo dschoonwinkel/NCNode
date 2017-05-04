@@ -11,7 +11,7 @@ class PacketDispatcher(object):
 
 	def dispatch(self):
 		
-		if len(self.sharedState.output_queue_order) >= 2:
+		if len(self.sharedState.output_queue_order) >= self.sharedState.getMinBufferLen():
 			self.logger.debug("Taking packet from the front of packet queue")
 			dstMAC = self.sharedState.output_queue_order[0]
 			out_pkt = self.sharedState.getHeadPacketFromQueues()

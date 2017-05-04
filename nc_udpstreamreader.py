@@ -5,12 +5,15 @@ import logging
 import logging.config
 import nc_shared_state
 import nc_encapsulator
+import nc_enqueuer
+import nc_stream_orderer
 import coding_utils
 
 class UDPPortToIP(object):
 
     port_to_IP = dict()
-    port_to_IP[10900] = "10.0.0.2"
+    port_to_IP[10001] = "10.0.0.1"
+    port_to_IP[10002] = "10.0.0.2"
 
     @staticmethod
     def ip_from_udpport(portnumber):
@@ -34,6 +37,7 @@ class UDPStreamHandler(threading.Thread):
                      socket.SOCK_DGRAM) # UDP
         sock.bind((self.listening_addr, self.listening_port))
 
+        self.logger.debug("Starting UDPStreamReader on %d" % self.listening_port)
         while self.sharedState.run_event.is_set():
             data, addr = sock.recvfrom(65565) # buffer size is 65535 bytes
             # Send the data to the encapsulator
@@ -42,7 +46,10 @@ class UDPStreamHandler(threading.Thread):
 
 def main():
     sharedState = nc_shared_state.SharedState()
-    encapsulator = nc_encapsulator.Encapsulator(sharedState, None)
+    sharedState.ip_to_mac["10.0.0.2"] = "00:00:00:00:00:02"
+    streamOrderer = nc_stream_orderer.StreamOrderer(sharedState)
+    enqueuer = nc_enqueuer.Enqueuer(sharedState, streamOrderer)
+    encapsulator = nc_encapsulator.Encapsulator(sharedState, enqueuer)
 
     streamHandler = UDPStreamHandler(sharedState, 10900, encapsulator)
     streamHandler.start()
