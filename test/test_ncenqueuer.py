@@ -30,14 +30,13 @@ class TestEnqueuer(unittest.TestCase):
         enqueuer = nc_enqueuer.Enqueuer(sharedState, mockStreamOrderer)
         hw_dest1 = "00:00:00:00:00:01"
         dst_ip = "10.0.0.123"
-        # sharedState.ip_to_mac["10.0.0.123"] = hw_dest1
+        sharedState.ip_to_mac["10.0.0.123"] = hw_dest1
         payload1 = "\x01"
 
         cope_pkt1 = COPE_classes.COPE_packet()
-        encap_packet = cope_pkt1/scapy.IP(dst=dst_ip)/scapy.Raw(payload1)
         header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
-
         cope_pkt1.encoded_pkts.append(header1)
+        encap_packet = cope_pkt1/scapy.IP(dst=dst_ip)/scapy.Raw(payload1)
 
         enqueuer.enqueue(encap_packet)
         mockStreamOrderer.order_stream.assert_not_called()

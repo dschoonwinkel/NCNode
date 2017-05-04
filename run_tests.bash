@@ -1,4 +1,5 @@
-export PYTHONPATH=$PYTHONPATH:/home/daniel/Development/pox/ext/coding
+export PYTHONPATH=$PYTHONPATH:.
+echo $PYTHONPATH
 #python test/test_ncsharedstate.py
 #python test/test_ncpacketdispatcher.py
 #python test/test_codingutils.py

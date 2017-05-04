@@ -19,6 +19,7 @@ class Enqueuer(object):
         # Currently, nexthop addresses are assigned according to previously heard packets, that is learned closest neighbours
 
         self.logger.debug("Got packet to enqueue")
+        # self.logger.debug("Encoded NUM %d" % len(cope_packet.encoded_pkts))
 
         # Control packet
         if len(cope_packet.encoded_pkts) == 0:
@@ -38,7 +39,7 @@ class Enqueuer(object):
 
         # Steps for forwarding:
         # If it is a native packet, check IP address and forward to neighbour closest
-        # self.logger.debug("Encoded NUM %d" % len(cope_packet.encoded_pkts))
+
         if len(cope_packet.encoded_pkts) == 1:
             self.logger.debug("Forwarding packet")
 
