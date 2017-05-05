@@ -4,66 +4,69 @@ import coding_utils
 import logging
 import logging.config
 import re
+import netifaces
 
 logging.config.fileConfig("logging.conf")
 logger = logging.getLogger("nc_node.network_utils")
 
 
 def get_first_IPAddr():
-    result = subprocess.check_output(["ifconfig"])
-    # logger.debug('output = %s' % result)
+    ifaces = netifaces.interfaces()
+    if 'lo' in ifaces:
+        ifaces.remove('lo')
+    addrs = netifaces.ifaddresses(ifaces[0])
 
-    if result:
-        addr_index = result.find("inet addr:")
-        ip_addr = result[addr_index + len("inet addr:"):]
-        ip_addr = ip_addr[:ip_addr.find(" ")]
+    # print ifaces
+    # print addrs
 
-        return ip_addr
+    if netifaces.AF_INET in addrs:
+        # print addrs[netifaces.AF_INET][0]['addr']
+        if 'addr' in addrs[netifaces.AF_INET][0]:
+            ip_addr = addrs[netifaces.AF_INET][0]['addr']
+            return ip_addr
 
+    # The first ip addr was not found
+    return None
 
 def get_first_HWAddr():
-    result = subprocess.check_output(["ifconfig"])
-    # logger.debug('output = %s' % result)
+    ifaces = netifaces.interfaces()
+    if 'lo' in ifaces:
+        ifaces.remove('lo')
+    addrs = netifaces.ifaddresses(ifaces[0])
 
-    if result.find("HWaddr") == -1:
-        logger.warn("HW Addr not found, using default")
-        return "00:00:00:00:00:00"
+    if netifaces.AF_PACKET in addrs:
+        # print addrs[netifaces.AF_PACKET][0]['addr']
+        if 'addr' in addrs[netifaces.AF_PACKET][0]:
+            hw_addr = addrs[netifaces.AF_PACKET][0]['addr']
+            return hw_addr
 
-    elif result:
-        addr_index = result.find("HWaddr ")
-        hw_addr = result[addr_index + len("HWaddr "):]
-        hw_addr = hw_addr[:hw_addr.find(" ")]
-
-        return hw_addr
+    return None
 
 def get_first_NicName():
-    result = subprocess.check_output(["ifconfig"])
-    # logger.debug('output = %s' % result)
+    ifaces = netifaces.interfaces()
+    if 'lo' in ifaces:
+        ifaces.remove('lo')
+    if len(ifaces) >= 0:
+        return ifaces[0]
 
-    if result.find("HWaddr") == -1:
-        logger.warn("HW Addr not found, therefore returning None")
-        return None
-
-    elif result:
-        result = result.split(" ")
-        hw_name = result[0]
-        return hw_name
-
+    # The first ip addr was not found
+    return None
 
 def get_HWAddr(ifacename):
-    result = subprocess.check_output(["ifconfig", ifacename])
-    # logger.debug(( 'output = %s' % result
+    ifaces = netifaces.interfaces()
+    if 'lo' in ifaces:
+        ifaces.remove('lo')
 
-    if result.find("HWaddr") == -1:
-        logger.warn("HW Addr not found, using default")
-        return "00:00:00:00:00:00"
+    if ifacename in ifaces:
+        addrs = netifaces.ifaddresses(ifacename)
 
-    elif result:
-        addr_index = result.find("HWaddr ")
-        hw_addr = result[addr_index + len("HWaddr "):]
-        hw_addr = hw_addr[:hw_addr.find(" ")]
+        if netifaces.AF_PACKET in addrs:
+            # print addrs[netifaces.AF_PACKET][0]['addr']
+            if 'addr' in addrs[netifaces.AF_PACKET][0]:
+                hw_addr = addrs[netifaces.AF_PACKET][0]['addr']
+                return hw_addr
 
-        return hw_addr
+    return None
 
 
 def check_IPPacket(message_bytes):
