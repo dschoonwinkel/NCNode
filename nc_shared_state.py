@@ -104,11 +104,11 @@ class SharedState(object):
             self.neighbour_seqnr_sent[neighbour] = 0
 
         self.neighbour_seqnr_sent[neighbour] += number
-        logging.debug("incrementNeighbourSeqnoSent for neighbour %s" % neighbour)
+        self.logger.debug("incrementNeighbourSeqnoSent for neighbour %s" % neighbour)
 
     def incrementNeighbourSeqnoRecv(self, neighbour, number = 1):
         self.neighbour_seqnr_recv[neighbour] += number
-        logging.debug("incrementNeighbourSeqnoRecv for neighbour %s" % neighbour)
+        self.logger.debug("incrementNeighbourSeqnoRecv for neighbour %s" % neighbour)
 
     def get_neighbour_recp_rep(self, ip_addr):
         return self.neighbour_recp_rep[ip_addr]
@@ -260,31 +260,31 @@ class SharedState(object):
 
     def incrementPacketRecv(self, packets = 1):
         self.packet_count_recv += packets
-        logging.debug("incrementPacketRecv: %d" % self.packet_count_recv)
+        self.logger.debug("incrementPacketRecv: %d" % self.packet_count_recv)
 
     def incrementPacketSeen(self, packets = 1):
         self.packet_count_seen += packets
-        logging.debug("incrementPacketRecv: %d" % self.packet_count_seen)
+        self.logger.debug("incrementPacketRecv: %d" % self.packet_count_seen)
 
     def incrementTrafficPktsIn(self, packets = 1):
         self.traffic_packets_in += packets
-        logging.debug("incrementTrafficPktsIn: %d" % self.traffic_packets_in)
+        self.logger.debug("incrementTrafficPktsIn: %d" % self.traffic_packets_in)
 
     def incrementTrafficPktsOut(self, packets = 1):
         self.traffic_packets_out += packets
-        logging.debug("incrementTrafficPktsOut: %d" % self.traffic_packets_out)
+        self.logger.debug("incrementTrafficPktsOut: %d" % self.traffic_packets_out)
 
     def incrementPktsSent(self, packets = 1, encoded = False):
         if not encoded:
             self.native_packets_sent += packets
-            logging.debug("incrementNativePktsSent: %d" % self.native_packets_sent)
+            self.logger.debug("incrementNativePktsSent: %d" % self.native_packets_sent)
         else:
             self.encoded_packets_sent += packets
-            logging.debug("incrementEncodedPktsSent: %d" % self.encoded_packets_sent)
+            self.logger.debug("incrementEncodedPktsSent: %d" % self.encoded_packets_sent)
     
     def incrementFailedACKs(self, failed = 1):
         self.acks_failed += failed
-        logging.debug("incrementFailedACKs: %d" % self.acks_failed)    
+        self.logger.debug("incrementFailedACKs: %d" % self.acks_failed)    
 
     def getPacketRecv(self):
         return self.packet_count_recv
@@ -305,7 +305,7 @@ class SharedState(object):
         return self.networkInstance
 
     def scheduleACK(self, neighbour, seq_no):
-        logging.debug("scheduling ACK for seq_no %d" % seq_no)
+        self.logger.debug("scheduling ACK for seq_no %d" % seq_no)
         ack_header = COPE_classes.ACKHeader()
         ack_header.neighbour = neighbour
         ack_header.last_ack = seq_no
@@ -346,7 +346,7 @@ class SharedState(object):
             receipt_header.src_ip = src_ip
             receipt_header.last_pkt = ip_seq_no
 
-            logging.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
+            self.logger.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
 
             if ip_pkt.src in self.receipts_history:
                 bit_map = self.receipts_history[src_ip]
@@ -377,8 +377,8 @@ class SharedState(object):
             self.ack_waiters[key].stopWaiter()
 
 def main():
-    logging.config.fileConfig('logging.conf')
-    logger = logging.getLogger('nc_node.ncSharedStateMain')
+    self.logger.config.fileConfig('self.logger.conf')
+    logger = self.logger.getLogger('nc_node.ncSharedStateMain')
     logger.debug("Everything is working")
 
 if __name__ == '__main__':

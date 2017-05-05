@@ -47,8 +47,8 @@ class TestEncoder(unittest.TestCase):
         sharedState = nc_shared_state.SharedState()
         mockEnqueuer = mock.Mock()
         decoder = nc_decoder.Decoder(sharedState, mockEnqueuer)
-        hw_dest1 = "00:00:00:00:00:01"
-        hw_dest2 = "00:00:00:00:00:02"
+        hw_dest1 = "00:00:00:00:00:23"
+        hw_dest2 = "00:00:00:00:00:24"
 
         header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
         header2 = COPE_classes.EncodedHeader(pkt_id=2, nexthop=hw_dest2)

@@ -35,7 +35,7 @@ class NetworkListenerHelper(threading.Thread):
                 # print_hex("Raw packet", packet)
 
                 scapy_pkt = Ether(packet)
-                if scapy_pkt.type == COPE_classes.COPE_PACKET_TYPE:
+                if scapy_pkt.type == COPE_classes.COPE_PACKET_TYPE and scapy_pkt.src != self.sharedState.get_my_hw_addr():
                     logging.debug("COPE packet received" )
                     self.listener.receivePkt(scapy_pkt)
                     # logging.debug("Packet count %d" % pkt_count)

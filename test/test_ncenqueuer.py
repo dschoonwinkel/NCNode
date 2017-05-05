@@ -28,7 +28,7 @@ class TestEnqueuer(unittest.TestCase):
         sharedState = nc_shared_state.SharedState()
         mockStreamOrderer = mock.Mock()
         enqueuer = nc_enqueuer.Enqueuer(sharedState, mockStreamOrderer)
-        hw_dest1 = "00:00:00:00:00:01"
+        hw_dest1 = "00:00:00:00:00:23"
         dst_ip = "10.0.0.123"
         sharedState.ip_to_mac["10.0.0.123"] = hw_dest1
         payload1 = "\x01"
