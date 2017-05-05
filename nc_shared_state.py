@@ -26,7 +26,7 @@ class SharedState(object):
         self.controlPktTimeout = 4                   # Timeout to wait for before acks and reports are sent as control packets
         self.controlWaiterCheckInterval = 2              # Check interval for the Control Waiter
         self.min_buffer_len = 2                      # The minimum number of packet to be buffered before transmission starts
-        self.ack_retry_time = 30
+        self.ack_retry_time = 10
         self.mac_to_port = dict()                    # dict(mac_addr, int) -- switch port on which to send out on, i.e. routing
         self.ip_to_mac = dict()                      # dict(IP, mac_addr) -- which MAC addr is closest to this IP, implicitly, which port should it be sent on. Used for routing
         self.ip_to_port = dict()                     # dict(IP, int) -- switch port on which to send out on, i.e. routing
@@ -310,6 +310,7 @@ class SharedState(object):
         ack_header.neighbour = neighbour
         ack_header.last_ack = seq_no
 
+        ackmap = 0
         if neighbour in self.ack_history:
             ackmap = self.ack_history[neighbour]
         else:
@@ -324,13 +325,25 @@ class SharedState(object):
                 seq_no_difference = seq_no - ack.last_ack
                 break
 
-        # Shift the ackmap by the difference in seq_no
-        ackmap = (ackmap << seq_no_difference | 1) & 255
+        # This happens when a resent packet arrives after the next packet in the stream
+        if seq_no_difference < 0:
+            # If still within the byte, add the report to the ack_history, but do nothing else
+            if seq_no_difference >= -7:
+                self.logger.debug("Adding ack to ack_history")
+                ackmap = (ackmap | (1 << -seq_no_difference)) & 255
+            # Else: Simply discard the report, it is probably stale anyway
+            else:
+                return
+        else:
+            # Shift the ackmap by the difference in seq_no
+            ackmap = (ackmap << seq_no_difference | 1) & 255
 
         self.ack_history[neighbour] = ackmap
         ack_header.ack_map = ackmap
 
         self.ack_queue.append(ack_header)
+
+
 
     def scheduleReceipts(self, cope_pkt):
         receipt_header = COPE_classes.ReportHeader()
@@ -339,7 +352,7 @@ class SharedState(object):
 
         # If the payload does not contain an IP packet, receipt reports can not be scheduled
         if ip_pkt:
-            # BEWARE!! This assumes that ip ID field are set up beforehand to be sequential. Could change
+            # TODO: BEWARE!! This assumes that ip ID field are set up beforehand to be sequential. Could change
             # as the packet moves across the network, but should be fine for subnets
             src_ip = ip_pkt.src
             ip_seq_no = ip_pkt.id
@@ -348,6 +361,7 @@ class SharedState(object):
 
             self.logger.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
 
+            bit_map = 0
             if ip_pkt.src in self.receipts_history:
                 bit_map = self.receipts_history[src_ip]
             else:
@@ -362,8 +376,18 @@ class SharedState(object):
                     seq_no_difference = ip_seq_no - report.last_pkt
                     break
 
-            # Shift the ackmap by the difference in seq_no
-            bit_map = (bit_map << seq_no_difference | 1) & 255
+            # This happens when a resent packet arrives after the next packet in the stream
+            if seq_no_difference < 0:
+                # If still within the byte, add the report to the ack_history, but do nothing else
+                if seq_no_difference >= -7:
+                    self.logger.debug("Adding ack to ack_history")
+                    bit_map = (bit_map | (1 << -seq_no_difference)) & 255
+                # Else: Simply discard the report, it is probably stale anyway
+                else:
+                    return
+            else:
+                # Shift the ackmap by the difference in seq_no
+                bit_map = (bit_map << seq_no_difference | 1) & 255
 
             self.receipts_history[src_ip] = bit_map
             receipt_header.bit_map = bit_map

@@ -29,6 +29,30 @@ class TestSharedState(unittest.TestCase):
         # sharedState.ack_queue[-1].show2()
         self.assertEqual(sharedState.ack_queue[-1].ack_map, 27)
 
+    def test_scheduleACK(self):
+        # logger.debug("\n\n Testing scheduleACK()")
+        sharedState = nc_shared_state.SharedState()
+        neighbour = "00:00:00:01:00:00"
+        seq_no = 2
+
+        sharedState.scheduleACK(neighbour, seq_no)
+        sharedState.ack_queue[-1].show2()
+        self.assertEqual(sharedState.ack_queue[-1].ack_map, 1)
+        sharedState.scheduleACK(neighbour, seq_no + 1)
+        sharedState.ack_queue[-1].show2()
+        self.assertEqual(sharedState.ack_queue[-1].ack_map, 3)
+        sharedState.scheduleACK(neighbour, seq_no + 3)
+        sharedState.ack_queue[-1].show2()
+        self.assertEqual(sharedState.ack_queue[-1].ack_map, 13)
+        sharedState.scheduleACK(neighbour, seq_no + 4)
+        sharedState.ack_queue[-1].show2()
+        self.assertEqual(sharedState.ack_queue[-1].ack_map, 27)
+
+        # Test reversed (resent packet) ordering
+        sharedState.scheduleACK(neighbour, seq_no-1)
+        sharedState.ack_queue[-1].show2()
+        self.assertEqual(sharedState.ack_queue[-1].ack_map, 59)
+
     def test_scheduleReceipts(self):
         # logger.debug("\n\n Testing scheduleReceipts()")
         sharedState = nc_shared_state.SharedState()
