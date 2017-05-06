@@ -23,10 +23,9 @@ class SharedState(object):
         self.my_nic_name = network_utils.get_first_NicName()
         self.my_ip_addr = network_utils.get_first_IPAddr()
         self.ack_retries = 2                         # number of retries before ACK waiter thread stops retransmitting
-        self.controlPktTimeout = 4                   # Timeout to wait for before acks and reports are sent as control packets
-        self.controlWaiterCheckInterval = 2              # Check interval for the Control Waiter
+        self.controlPktTimeout = 2                   # Timeout to wait for before acks and reports are sent as control packets
         self.min_buffer_len = 2                      # The minimum number of packet to be buffered before transmission starts
-        self.ack_retry_time = 10
+        self.ack_retry_time = 3
         self.mac_to_port = dict()                    # dict(mac_addr, int) -- switch port on which to send out on, i.e. routing
         self.ip_to_mac = dict()                      # dict(IP, mac_addr) -- which MAC addr is closest to this IP, implicitly, which port should it be sent on. Used for routing
         self.ip_to_port = dict()                     # dict(IP, int) -- switch port on which to send out on, i.e. routing
@@ -60,6 +59,7 @@ class SharedState(object):
         self.neighbour_recvd = dict()                 # dict(MAC, Set())
         self.ack_waiters = dict()                    # dict(tuple(neighbour, ack_id), ACKWaiterThread)    -- ACK waiter threads for each sent packet
         self.controlPktWaiter = nc_scheduler.ControlPktWaiter(self)
+        self.controlPktWaiter.start()
 
         #Statistics + Counters
         self.packet_count_recv = 0
@@ -142,9 +142,10 @@ class SharedState(object):
                 self.neighbour_recp_rep[report.src_ip].add(report.last_pkt - i - 1)
 
     def updateACKwaiters(self, ackreport, neighbour):
-        self.logger.debug("Ackreport " + str(ackreport))
-        if str(ackreport.neighbour) is self.my_hw_addr:
-            # self.logger.debug("updateACKwaiters running")
+        self.logger.debug("Ackreport ")
+
+        if str(ackreport.neighbour) == str(self.my_hw_addr):
+            self.logger.debug("updateACKwaiters running")
             if (neighbour, ackreport.last_ack) in self.ack_waiters:
 
                 # Add a neighbour recvd set if there none for this neighbour
@@ -157,6 +158,7 @@ class SharedState(object):
                 # Use the ack_waiter information to put the correct pkt_id in the neighbour recvd set
                 self.neighbour_recvd[neighbour].add(ack_waiter.pkt.get_pktid(neighbour))
                 # Stop the ACKwaiter
+                self.logger.debug("Stopping ACK waiter for %d " %ackreport.last_ack)
                 ack_waiter.stopWaiter()
 
                 
@@ -173,6 +175,12 @@ class SharedState(object):
                         self.neighbour_recvd[neighbour].add(ack_waiter.pkt.get_pktid(neighbour))
                         ack_waiter.stopWaiter()
 
+    def popACKReport(self):
+        return self.ack_queue.pop()
+
+    def popRecpReport(self):
+        return self.receipts_queue.pop()
+
     def setNetworkSocket(self, socket):
         self.networkSocket = socket
 
@@ -184,6 +192,9 @@ class SharedState(object):
 
     def clearRunEvent(self):
         self.run_event.clear()
+
+    def resetControlPktScheduler(self):
+        self.controlPktWaiter.restartWaiter()
 
     def setPacketDispatcher(self, packetDispatcher):
         self.packetDispatcher = packetDispatcher
@@ -257,6 +268,9 @@ class SharedState(object):
 
     def getMinBufferLen(self):
         return self.min_buffer_len
+
+    def getControlPktTimeout(self):
+        return self.controlPktTimeout
 
     def incrementPacketRecv(self, packets = 1):
         self.packet_count_recv += packets

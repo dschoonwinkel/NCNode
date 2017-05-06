@@ -123,7 +123,7 @@ def main():
 
 
 
-    logger.info("Starting Runner loop")
+    logger.info("Starting Runner loop \n******************* \n\n\n*******************\n\n\n*******************")
     try:
         while (1):
             raw_input()

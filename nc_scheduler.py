@@ -16,17 +16,33 @@ class ControlPktWaiter(threading.Thread):
 
 
     def restartWaiter(self):
+        # Set the start_time = current_time to indicate that the waiting is reset, not timed out
+        self.startTime = time.time()
+        # Set wait event, so that wait loop can be restarted
+        self.stop_event.set()
         pass
 
 
     def run(self):
-        for i in range(self.sharedState.controlPktTimeout):
-            self.stop_event.wait(self.sharedState.ack_retry_time)
-            if self.stop_event.is_set():
-                self.logger.debug("ACKWaiter was stopped")
-                return
-            else:
-                self.logger.debug("Resending packet %s", self.pkt.local_pkt_seq_num)
-                self.transmitter.transmit(self.pkt)
+        self.logger.debug("Starting ControlPktWaiter")
+        self.startTime = time.time()
+        # Loop while NCNode is running
+        while self.sharedState.run_event.is_set():
+            # self.logger.debug("ControlPktWaiter loop")
 
-        self.sharedState.incrementFailedACKs()
+            # Wait until timeout or interruption
+            self.stop_event.wait(self.sharedState.getControlPktTimeout())
+            currentTime = time.time()
+            # If it was the timeout, i.e. current_time > start_time + waittime, send control Pkt
+
+
+            if currentTime > self.startTime + self.sharedState.getControlPktTimeout():
+                # self.logger.debug("Timeout has occured")
+                if len(self.sharedState.ack_queue) > 0 or len(self.sharedState.receipts_queue) > 0:
+                    self.logger.debug("Sending control pkt")
+                    self.sharedState.packetDispatcher.dispatchControlPkt()
+            # Else if it was stopped or restarted, do nothing, the loop will restart waiting
+
+            self.startTime = currentTime
+            # Unset the stop_event to restart the waiting in the next loop
+            self.stop_event.clear()

@@ -17,6 +17,7 @@ class ACKsReceipts(object):
 
     def processPkt(self, cope_pkt, from_neighbour):
         self.logger.debug("Got packet to process acks")
+        cope_pkt.show2()
         # Extract the receipts and acks here
         # Pass the packet to the decoder
         # scapy_packet.show2()
@@ -24,7 +25,7 @@ class ACKsReceipts(object):
         
         if cope_pkt:
             for ack in cope_pkt.acks:
-                # print "processing ACK %d" % ack.last_ack
+                self.logger.info("processing ACK %d" % ack.last_ack)
                 self.sharedState.updateACKwaiters(ack, from_neighbour)
 
             for report in cope_pkt.reports:
@@ -45,20 +46,18 @@ class AddACKsReceipts(object):
         self.logger = logging.getLogger('nc_node.AddACKsReceipts')
 
     def addACKsRecps(self, pkt):
-        for ack in self.sharedState.ack_queue:
-            self.logger.debug("Add %d ack to packet", ack.last_ack)
+        for i in range(len(self.sharedState.ack_queue)):
+            ack = self.sharedState.popACKReport()
+            self.logger.debug("Add pktno %d ack to packet", ack.last_ack)
             # Perform adding here
-            if pkt.acks == None:
-                self.logger.debug("Creating acks list")
-
+            pkt.acks = list()
             pkt.acks.append(ack)
 
-        for recp in self.sharedState.receipts_queue:
-            self.logger.debug("Add %d recp to packet", recp.last_pkt)
+        for i in range(len(self.sharedState.receipts_queue)):
+            recp = self.sharedState.popRecpReport()
+            self.logger.debug("Add pktno %d recp to packet", recp.last_pkt)
             
-            if pkt.reports == None:
-                self.logger.debug("Creating acks list")
-
+            pkt.reports = list()
             pkt.reports.append(recp)            
         
         
@@ -73,7 +72,9 @@ class AddACKsReceipts(object):
         self.logger.debug("Encoded NUM %d" % len(pkt.encoded_pkts))
         if pkt.ENCODED_NUM >= 1:
             pkt.local_pkt_seq_no = self.sharedState.get_neighbour_seqnr_sent(pkt.encoded_pkts[0].nexthop) 
-            
+
+
+        pkt.show2()
         self.transmitter.transmit(pkt)
 
     

@@ -42,6 +42,8 @@ class Transmitter(object):
 				return
 
 			# encap_pkt.show2()
+
+			self.sharedState.resetControlPktScheduler()
 			networkInstance.sendPkt(encap_pkt)
 				
 		else:

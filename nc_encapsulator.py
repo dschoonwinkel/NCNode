@@ -24,6 +24,7 @@ class Encapsulator(object):
         cope_pkt = COPE_classes.COPE_packet() / ip_pkt
 
         # Use broadcast address as "empty" addr field
+        cope_pkt.encoded_pkts = list()
         cope_pkt.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=self.broadcast_HWAddr))
         cope_pkt.local_pkt_seq_num = local_seq_no
 
