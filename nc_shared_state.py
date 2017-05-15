@@ -10,6 +10,7 @@ import network_utils
 import nc_scheduler
 import network_utils
 import coding_utils
+import nc_netsetup
 
 class SharedState(object):
 
@@ -23,9 +24,9 @@ class SharedState(object):
         self.my_nic_name = network_utils.get_first_NicName()
         self.my_ip_addr = network_utils.get_first_IPAddr()
         self.ack_retries = 2                         # number of retries before ACK waiter thread stops retransmitting
-        self.controlPktTimeout = 2                   # Timeout to wait for before acks and reports are sent as control packets
-        self.min_buffer_len = 2                      # The minimum number of packet to be buffered before transmission starts
-        self.ack_retry_time = 3
+        self.controlPktTimeout = 0                   # Timeout to wait for before acks and reports are sent as control packets
+        self.min_buffer_len = 1                      # The minimum number of packet to be buffered before transmission starts
+        self.ack_retry_time = 30
         self.mac_to_port = dict()                    # dict(mac_addr, int) -- switch port on which to send out on, i.e. routing
         self.ip_to_mac = dict()                      # dict(IP, mac_addr) -- which MAC addr is closest to this IP, implicitly, which port should it be sent on. Used for routing
         self.ip_to_port = dict()                     # dict(IP, int) -- switch port on which to send out on, i.e. routing
@@ -77,6 +78,8 @@ class SharedState(object):
         self.logger = logging.getLogger('nc_node.ncSharedState')
         self.packetDispatcher = None
 
+        self.ip_to_mac = nc_netsetup.readNetworkLayout()
+
     def get_my_ip_addr(self):
         return self.my_ip_addr
 
@@ -87,6 +90,7 @@ class SharedState(object):
         return self.my_nic_name
 
     def getMACFromIP(self, ip_addr):
+        self.logger.debug("IP to MAC table %s" % self.ip_to_mac)
         if ip_addr in self.ip_to_mac:
             return self.ip_to_mac[ip_addr]
         else:

@@ -79,7 +79,7 @@ def main():
   cope_pkt = COPE_packet()
   cope_pkt.encoded_pkts.append(EncodedHeader(pkt_id=hash("10.0.0.1"+str(1)), nexthop="00:00:00:10:00:02"))
   cope_pkt.local_pkt_seq_num = 1
-  cope_pkt.show2()
+  #cope_pkt.show2()
   ls(cope_pkt)
   hextext = ' '.join('%02X' % ord(x) for x in str(cope_pkt))
   print hextext

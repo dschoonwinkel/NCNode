@@ -5,6 +5,7 @@ import logging
 import logging.config
 import re
 import netifaces
+import COPE_packet_classes as COPE_classes
 
 logging.config.fileConfig("logging.conf")
 logger = logging.getLogger("nc_node.network_utils")
@@ -94,6 +95,31 @@ def check_IPPacket(message_bytes):
             return ip_pkt
 
     return None
+
+def dissectCOPE_pkt(ether_pkt):
+    cope_pkt = None
+    ip_pkt = None
+    raw_data = None
+    # It is not a cope packet
+    if ether_pkt.type != 0x7123:
+        return cope_pkt, ip_pkt, raw_data
+
+    cope_pkt, raw_ip = coding_utils.extr_COPE_pkt(str(ether_pkt.payload))
+    if not cope_pkt:
+        logger.error("COPE packet was None")
+        return cope_pkt, ip_pkt, raw_data
+
+    ip_pkt = check_IPPacket(str(cope_pkt.payload))
+
+    if not ip_pkt:
+        logger.error("IP packet was None")
+        return cope_pkt, ip_pkt, raw_data
+
+    raw_data = str(ip_pkt[scapy.Raw])
+
+    return cope_pkt, ip_pkt, raw_data
+
+
 
 def ipToListenerPort(ip_addr):
     ip_addr = str(ip_addr)

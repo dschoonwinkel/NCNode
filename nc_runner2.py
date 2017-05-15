@@ -19,6 +19,7 @@ import crc_funcs
 import network_utils
 import nc_encapsulator
 import nc_udpstreamreader
+import nc_app_instance
 
 
 packetDispatcher = None
@@ -34,8 +35,9 @@ def setup_NCNode(sharedState):
     networkListener = NetworkListener(sharedState, acksReceipts)
 
     # Input side
-    sharedState.ip_to_mac["10.0.0.2"] = "00:00:00:00:00:02"
-    sharedState.ip_to_mac["10.0.0.1"] = "00:00:00:00:00:01"
+    # sharedState.ip_to_mac["10.0.0.2"] = "00:00:00:00:00:02"
+    # sharedState.ip_to_mac["10.0.0.1"] = "00:00:00:00:00:01"
+    # This is done by reading network config from python mininet topo script
     encapsulator = nc_encapsulator.Encapsulator(sharedState, enqueuer)
 
     # TODO: Improve this, this should not be hardcoded
@@ -60,6 +62,8 @@ def setup_NCNode(sharedState):
     # Test with valid networkInstance
     networkInstanceAdapter = NetworkInstanceAdapter(network_utils.get_first_NicName())
     sharedState.networkInstance = networkInstanceAdapter
+    appInstance = nc_app_instance.ApplicationInstanceAdapter()
+    sharedState.appInstance = appInstance
 
     sharedState.setPacketDispatcher(packetDispatcher)
 
@@ -107,7 +111,7 @@ def test_sender(sharedState):
     cope_pkt.reports.append(COPE_classes.ReportHeader(src_ip='10.0.0.2', last_pkt=91, bit_map=int('00011111', 2)))
     cope_pkt.local_pkt_seq_num = 2
     cope_pkt.calc_checksum()
-    cope_pkt.show2()
+    #cope_pkt.show2()
     dstMAC = "00:00:00:00:00:02"
     sharedState.addPacketToOutputQueue(dstMAC, cope_pkt)
     packetDispatcher.dispatch()

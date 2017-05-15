@@ -61,7 +61,7 @@ def test_sender(sharedState):
     cope_pkt.reports.append(COPE_classes.ReportHeader(src_ip='10.0.0.2', last_pkt=91, bit_map=int('00011111', 2)))
     cope_pkt.local_pkt_seq_num = 2
     cope_pkt.calc_checksum()
-    cope_pkt.show2()
+    #cope_pkt.show2()
     dstMAC = "00:00:00:00:00:01"
     sharedState.addPacketToOutputQueue(dstMAC, cope_pkt)
     packetDispatcher.dispatch()

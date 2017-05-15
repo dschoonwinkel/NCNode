@@ -44,11 +44,11 @@ class Decoder(object):
                 self.sharedState.addPacketToPacketPool(pkt_id, cope_pkt)
                 # Do ACK scheduling here
                 # self.logger.info("Uncoded pkt seen: %d, received %d" % (len(self.sharedState.pkts_ids_received), packets_received))
-                if from_neighbour == self.sharedState.get_my_hw_addr():
-                    self.logger.debug("Overheard locally, do not schedule ACK")
-
-                else:
-                    self.sharedState.scheduleACK(from_neighbour, cope_pkt.local_pkt_seq_num)
+                # if from_neighbour == self.sharedState.get_my_hw_addr():
+                #     self.logger.debug("Overheard locally, do not schedule ACK")
+                #
+                # else:
+                self.sharedState.scheduleACK(from_neighbour, cope_pkt.local_pkt_seq_num)
 
                 # Let other nodes know that I have received this packet
                 self.sharedState.scheduleReceipts(cope_pkt)

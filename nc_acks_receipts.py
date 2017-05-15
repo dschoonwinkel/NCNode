@@ -17,7 +17,7 @@ class ACKsReceipts(object):
 
     def processPkt(self, cope_pkt, from_neighbour):
         self.logger.debug("Got packet to process acks")
-        cope_pkt.show2()
+        # cope_pkt.show2()
         # Extract the receipts and acks here
         # Pass the packet to the decoder
         # scapy_packet.show2()
@@ -74,7 +74,7 @@ class AddACKsReceipts(object):
             pkt.local_pkt_seq_no = self.sharedState.get_neighbour_seqnr_sent(pkt.encoded_pkts[0].nexthop) 
 
 
-        pkt.show2()
+        # pkt.show2()
         self.transmitter.transmit(pkt)
 
     

@@ -54,7 +54,7 @@ class Enqueuer(object):
                     # Update nexthop, so that the next neighbour in the chain will process the packet
                     cope_packet.encoded_pkts[0].nexthop = dst_hw_addr
                     self.sharedState.addPacketToOutputQueue(dst_hw_addr, cope_packet)
-                    cope_packet.show2()
+                    # cope_packet.show2()
                 # If IP address is not know, forward to everyone
                 else:
                     self.logger.error("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst)
