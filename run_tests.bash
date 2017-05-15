@@ -7,11 +7,11 @@ echo $PYTHONPATH
 #python test/test_ncacksreceipt.py
 #python test/test_nctransmitter.py
 #python test/test_ncencoder.py
-#python test/test_COPEpktclasses.py
+python test/test_COPEpktclasses.py
 #python test/test_netwutils.py
 #python test/test_ncdecoder.py
 #python test/test_ncenqueuer.py
-python test/test_controlpktscheduler.py
+# python test/test_controlpktscheduler.py
 # python test/test_all.py
 
 # python -m unittest discover ./test

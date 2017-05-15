@@ -16,7 +16,7 @@ class ReportHeader(Packet):
     name = "Overheard report"
 
     fields_desc = [IPField('src_ip', "0.0.0.0"), 
-                   LongField('last_pkt', 0),
+                   IntField('last_pkt', 0),
                    ByteField('bit_map', '0')]
 
     def extract_padding(self, s):
@@ -26,7 +26,7 @@ class ACKHeader(Packet):
     name = "ACK report"
 
     fields_desc = [MACField('neighbour', "00:00:00:00:00:00"), 
-                   LongField('last_ack', 0),
+                   IntField('last_ack', 0),
                    ByteField('ack_map', 0)]
 
     def extract_padding(self, s):

@@ -5,6 +5,7 @@ import COPE_packet_classes as COPE_classes
 import threading
 import time
 import nc_transmitter
+import coding_utils
 
 
 class ACKsReceipts(object):
@@ -74,7 +75,8 @@ class AddACKsReceipts(object):
             pkt.local_pkt_seq_no = self.sharedState.get_neighbour_seqnr_sent(pkt.encoded_pkts[0].nexthop) 
 
 
-        # pkt.show2()
+        pkt.show2()
+        self.logger.critical(coding_utils.print_hex("Raw packet: ", str(pkt)))
         self.transmitter.transmit(pkt)
 
     

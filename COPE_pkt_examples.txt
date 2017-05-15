@@ -1,0 +1,49 @@
+Data only packet example
+
+Enc num: 2 bytes 			00 01
+Encoded Header
+	Pkt id 8 bytes: 			11 29 8E 0D 3E 0D 3E 0D
+	Nexthop MAC 6 bytes: 		06 C7 D6 69 0E 66
+	
+Report Num 2 bytes:  		00 00
+ACK Num 2 bytes: 			00 00
+Local pkt seq no 4 bytes?:	00 00 00 01
+Checksum 2 bytes: 			00 00 
+
+IP header 20 bytes:			45 00 00 30 00 01 00 00 40 11 
+							66 BA 0A 00 00 01 0A 00 00 02
+
+UDP header 8 bytes:			00 35 38 CD 00 1C 21 98
+
+Data 20 bytes:				00 00 00 01 00 00 00 01 00 00 
+							CB 80 00 0B F8 BA 5F 97 6D 39
+
+
+
+
+ACK packet: example 
+Enc num: 2 bytes: 			00 00
+Report num: 2 bytes:		00 00
+ACK num: 2 bytes:			00 01
+Local pkt seq no 4 bytes:   00 00 00 00
+
+ACKReport: 
+	neighbour MAC 6 bytes:	86 12 8A 15 65 04 
+	last_ack 4 bytes:		00 00 00 01
+	ack_map 1 byte: 		01
+
+Checksum 2 bytes:			00 00
+
+
+
+
+Report packet example:
+Enc num 2 bytes: 			00 00
+Report num 2 bytes:			00 01
+	src_IP Addr 4 bytes:	0A 00 00 01
+	last_pkt 4 bytes: 		00 00 00 01
+	bit_map 1 byte:			01
+
+ACK Num 2 bytes:			00 00
+Local pkt seq no 4 bytes:	00 00 00 00 
+Checksum 2 bytes:			00 00
