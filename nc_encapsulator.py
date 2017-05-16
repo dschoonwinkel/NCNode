@@ -20,7 +20,7 @@ class Encapsulator(object):
         local_seq_no = self.sharedState.getAndIncrementLocalSeqNum()
         pkt_id = COPE_classes.generatePktId(src_ip, local_seq_no)
 
-        ip_pkt = scapy.IP(src=src_ip, dst=IP_addr, id=local_seq_no) / scapy.UDP(dport=14541) / scapy.Raw(data)
+        ip_pkt = scapy.IP(src=src_ip, dst=IP_addr, id=local_seq_no) / scapy.UDP(sport=11777, dport=14541) / scapy.Raw(data)
         cope_pkt = COPE_classes.COPE_packet() / ip_pkt
 
         # Use broadcast address as "empty" addr field

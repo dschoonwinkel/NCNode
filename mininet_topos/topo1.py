@@ -32,6 +32,7 @@ def main():
     # h1.cmd("sudo python ../nc_runner2.py &")
     # h2.cmd("sudo python ../nc_runner2.py &")
     h1.cmd("tcpdump -i lo -s 65535 -w dump_sender.pcap &")
+    h1.cmd("tcpdump -i h1-eth0 -s 65535 -w dump_sender_netw.pcap &")
     h2.cmd("tcpdump -i lo -s 65535 -w dump_receiver.pcap &")
 
 
