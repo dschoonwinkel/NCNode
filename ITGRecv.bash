@@ -1,3 +1,3 @@
 #! /bin/bash
 
-ITGRecv -Sp 11234
+/home/daniel/Development/ITGTrafficGen/bin/ITGRecv -Sp 11234
