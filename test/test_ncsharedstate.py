@@ -36,21 +36,21 @@ class TestSharedState(unittest.TestCase):
         seq_no = 2
 
         sharedState.scheduleACK(neighbour, seq_no)
-        sharedState.ack_queue[-1].show2()
+        #sharedState.ack_queue[-1].show2()
         self.assertEqual(sharedState.ack_queue[-1].ack_map, 1)
         sharedState.scheduleACK(neighbour, seq_no + 1)
-        sharedState.ack_queue[-1].show2()
+        #sharedState.ack_queue[-1].show2()
         self.assertEqual(sharedState.ack_queue[-1].ack_map, 3)
         sharedState.scheduleACK(neighbour, seq_no + 3)
-        sharedState.ack_queue[-1].show2()
+        #sharedState.ack_queue[-1].show2()
         self.assertEqual(sharedState.ack_queue[-1].ack_map, 13)
         sharedState.scheduleACK(neighbour, seq_no + 4)
-        sharedState.ack_queue[-1].show2()
+        #sharedState.ack_queue[-1].show2()
         self.assertEqual(sharedState.ack_queue[-1].ack_map, 27)
 
         # Test reversed (resent packet) ordering
         sharedState.scheduleACK(neighbour, seq_no-1)
-        sharedState.ack_queue[-1].show2()
+        #sharedState.ack_queue[-1].show2()
         self.assertEqual(sharedState.ack_queue[-1].ack_map, 59)
 
     def test_scheduleReceipts(self):

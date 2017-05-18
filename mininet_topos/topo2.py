@@ -37,11 +37,13 @@ def main():
     h2.cmd("tcpdump -i lo -s 65535 -w dump_receiver.pcap &")
 
 
-    h1.cmd("xterm -fg black -bg cyan -geometry 80x24+450+0 -e python nc_runner2.py &")
-    h2.cmd("xterm -fg black -bg yellow -geometry 80x24+450+400 -e python nc_runner2.py &")
+    # h1.cmd("xterm -fg black -bg cyan -geometry 80x24+450+0 -e \"python -m cProfile -o h1_profile.txt nc_runner2.py; bash \" &")
+    h1.cmd("xterm -fg black -bg cyan -geometry 80x24+450+0 -e \"python nc_runner2_profile.py; bash \" &")
+    # h2.cmd("xterm -fg black -bg yellow -geometry 80x24+450+400 -e \"python -m cProfile -o h2_profile.txt nc_runner2.py; bash \" &")
+    h2.cmd("xterm -fg black -bg yellow -geometry 80x24+450+400 -e \"python nc_runner2_profile.py; bash \" &")
     h2.cmd("xterm -fg black -bg yellow -geometry 80x24+950+400 -e \"bash ITGRecv.bash; bash\" &")
 
-    time.sleep(2)
+    time.sleep(3)
 
     h1.cmd("xterm -fg black -bg cyan -geometry 80x24+950+0 -e \"bash ITGSend.bash; bash\" &")
     h2.cmd("xterm -fg black -bg yellow -geometry 80x24+0+400 &")
