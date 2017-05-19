@@ -8,7 +8,7 @@ import mock
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_ncencoder')
+#logger =logging.getLogger('nc_node.test_ncencoder')
 
 
 class TestEncoder(unittest.TestCase):
@@ -124,7 +124,7 @@ class TestEncoder(unittest.TestCase):
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestEncoder)
     unittest.TextTestRunner(verbosity=2).run(suite)
-    logger.debug("Tests run")
+    #logger.debug("Tests run")
 
 if __name__ == '__main__':
     main()

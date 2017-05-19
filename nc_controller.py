@@ -134,7 +134,7 @@ class Tutorial(object):
             return
 
         if scapy_pkt.type == COPE_PACKET_TYPE:
-            # logger.debug(Possibly a cope packet"
+            # #logger.debug(Possibly a cope packet"
             # print_hex("Raw bytes", raw_bytes)
 
             cope_pkt, cope_payload = extr_COPE_pkt(packet.payload)
@@ -145,18 +145,18 @@ class Tutorial(object):
                 log.info("COPE_packets received: " + str(COPE_packet_received_count))
 
             # Native packet
-            logger.debug("Encoded NUM %d" % len(cope_pkt.encoded_pkts))
+            #logger.debug("Encoded NUM %d" % len(cope_pkt.encoded_pkts))
             if cope_pkt and len(cope_pkt.encoded_pkts) == 1:
 
                 dstip = cope_pkt.encoded_pkts[0].nexthop
                 if dstip not in packet_queues:
-                    # logger.debug(Adding new neighbour output queue"
+                    # #logger.debug(Adding new neighbour output queue"
                     q = Queue.Queue()
                     q.put(packet)
                     packet_queues[dstip] = q
 
                 elif dstip in packet_queues:
-                    # logger.debug(Adding packet to existing neighbour output queue"
+                    # #logger.debug(Adding packet to existing neighbour output queue"
                     q = packet_queues[dstip]
                     q.put(packet)
 
@@ -170,11 +170,11 @@ class Tutorial(object):
                     if key not in packet_queues_ready:
                         packet_queues_ready.append(key)
 
-                # logger.debug(Packet queues ready", packet_queues_ready
-                # logger.debug(Output queue", output_queue
+                # #logger.debug(Packet queues ready", packet_queues_ready
+                # #logger.debug(Output queue", output_queue
 
-                # logger.debug(Packet queues ready len", len(packet_queues_ready)
-                # logger.debug(Output queue len", len(output_queue)
+                # #logger.debug(Packet queues ready len", len(packet_queues_ready)
+                # #logger.debug(Output queue len", len(output_queue)
 
                 if len(packet_queues_ready) >= 2 and len(output_queue) >= 2:
                     log.info("Starting coding process")
@@ -192,16 +192,16 @@ class Tutorial(object):
 
                     coded_pkt.encoded_pkts.append(cope_pkt1.encoded_pkts[0])
                     coded_pkt.encoded_pkts.append(cope_pkt2.encoded_pkts[0])
-                    # logger.debug(Packet 1 payload", ' '.join('%02X' % ord(x) for x in str(cope_payload1))
-                    # logger.debug(Packet 2 payload", ' '.join('%02X' % ord(x) for x in str(cope_payload2))
+                    # #logger.debug(Packet 1 payload", ' '.join('%02X' % ord(x) for x in str(cope_payload1))
+                    # #logger.debug(Packet 2 payload", ' '.join('%02X' % ord(x) for x in str(cope_payload2))
                     coded_payload = strxor(cope_payload1, cope_payload2)
-                    # logger.debug(Xor'ed payload", ' '.join('%02X' % ord(x) for x in str(coded_payload))
+                    # #logger.debug(Xor'ed payload", ' '.join('%02X' % ord(x) for x in str(coded_payload))
 
-                    # logger.debug(Output queue", output_queue
+                    # #logger.debug(Output queue", output_queue
                     coded_pkt.checksum = crc_checksum(str(coded_pkt))
                     coded_pkt.payload = Raw(coded_payload)
 
-                    # logger.debug(Type of coded_pkt", type(coded_pkt)
+                    # #logger.debug(Type of coded_pkt", type(coded_pkt)
                     # coded_pkt.show2()
 
 
@@ -224,7 +224,7 @@ class Tutorial(object):
                     # else:
                     # Do some cleverer routing here eventually
                     # COPE_packet_sent_native_count += 1
-                    # logger.debug(Sending native packet id %d, count %d \n" % (cope_pkt.encoded_pkts[0].pkt_id,COPE_packet_sent_native_count)
+                    # #logger.debug(Sending native packet id %d, count %d \n" % (cope_pkt.encoded_pkts[0].pkt_id,COPE_packet_sent_native_count)
                     # self.resend_packet(packet_in, of.OFPP_ALL)
 
     def _handle_PacketIn(self, event):

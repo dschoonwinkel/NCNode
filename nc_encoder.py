@@ -11,28 +11,28 @@ class Encoder(object):
         self.sharedState = sharedState
         self.addACksRecps = addAckRecps
         logging.config.fileConfig('logging.conf')
-        self.logger = logging.getLogger('nc_node.Encoder')
+        #self.#logger =logging.getLogger('nc_node.Encoder')
 
     def encode(self, pkt):
         # Perform encoding functions here, or dispatch native packet
-        self.logger.debug("Encoding packet")
+        #self.#logger.debug("Encoding packet")
         # pkt.show2()
 
         # Check if there are enough packets to code together, otherwise send uncoded
         # Assure that packet with the same nexthop destination is not coded together
-        self.logger.debug("Encoded num %d" %len(pkt.encoded_pkts))
+        #self.#logger.debug("Encoded num %d" %len(pkt.encoded_pkts))
 
         if len(pkt.encoded_pkts) >= 1:
             packet_queues_ready = self.sharedState.getOutputQueueReady(first_addr=pkt.encoded_pkts[0].nexthop)
         else:
             packet_queues_ready = self.sharedState.getOutputQueueReady()
 
-        self.logger.debug("Packet queues ready: %s" % str(packet_queues_ready))
+        #self.#logger.debug("Packet queues ready: %s" % str(packet_queues_ready))
 
 
         # If there is at least 1 packet to code together
         if packet_queues_ready and len(packet_queues_ready) >= 1:
-            self.logger.debug("Starting coding process")
+            #self.#logger.debug("Starting coding process")
 
             # Get all the codeable packets in a list
             cope_pkts = list()
@@ -48,7 +48,7 @@ class Encoder(object):
             coded_pkt = COPE_classes.COPE_packet()
             coded_payload = ""
 
-            self.logger.debug("Len of valid_codables %d" % len(valid_codables))
+            #self.#logger.debug("Len of valid_codables %d" % len(valid_codables))
 
             # There are packets to encode
             if len(valid_codables) >= 1:
@@ -62,7 +62,7 @@ class Encoder(object):
                 coded_pkt.encoded_pkts.append(pkt.encoded_pkts[0])
                 coded_payload = str(pkt.payload)
 
-            # logger.debug(Output queue", output_queue
+            # #logger.debug(Output queue", output_queue
             coded_pkt.payload = scapy.Raw(coded_payload)
 
             self.addACksRecps.addACKsRecps(coded_pkt)
@@ -107,7 +107,7 @@ class Encoder(object):
 
 
     def dropPkt(self, pkt_id):
-        self.logger.debug("Dropping packet id %d" % pkt_id)
+        #self.#logger.debug("Dropping packet id %d" % pkt_id)
         # Perform dropping of packets here, using transmitter module. May be necessary when
         # networkInstance is
         self.addACksRecps.dropPkt()

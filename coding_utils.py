@@ -6,7 +6,7 @@ import crc_funcs
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('codingUtils')
+#logger =logging.getLogger('codingUtils')
 
 
 def print_hex(title, payload):
@@ -20,12 +20,12 @@ def extr_COPE_pkt(payload_bytes):
     raw_payload = None
 
     # cope_pkt.show2()
-    # logger.debug(len of cope_pkt.payload", len(cope_pkt.payload)
+    # #logger.debug(len of cope_pkt.payload", len(cope_pkt.payload)
     # print_hex("Received cope packet", str(cope_pkt))
     # print_hex("Without payload     ", payload_bytes[:-len(cope_pkt.payload)])
 
-    # logger.debug(Checksum is correct: ", crc_funcs.crc_checksum(payload_bytes[:-len(cope_pkt.payload)]) == cope_pkt.checksum
-    # logger.debug(Checksum value: " , crc_funcs.crc_checksum(payload_bytes[:-len(cope_pkt.payload)])
+    # #logger.debug(Checksum is correct: ", crc_funcs.crc_checksum(payload_bytes[:-len(cope_pkt.payload)]) == cope_pkt.checksum
+    # #logger.debug(Checksum value: " , crc_funcs.crc_checksum(payload_bytes[:-len(cope_pkt.payload)])
 
     # Check if valid COPE packet, i.e. valid header checksum
     # If the payload length is 0, take the checksum of only the COPE packet header 

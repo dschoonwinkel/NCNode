@@ -6,12 +6,12 @@ import crc_funcs
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_ncsharedstate')
+#logger =logging.getLogger('nc_node.test_ncsharedstate')
 
 
 class TestSharedState(unittest.TestCase):
     def test_scheduleACK(self):
-        # logger.debug("\n\n Testing scheduleACK()")
+        # #logger.debug("\n\n Testing scheduleACK()")
         sharedState = nc_shared_state.SharedState()
         neighbour = "00:00:00:01:00:00"
         seq_no = 1
@@ -30,7 +30,7 @@ class TestSharedState(unittest.TestCase):
         self.assertEqual(sharedState.ack_queue[-1].ack_map, 27)
 
     def test_scheduleACK(self):
-        # logger.debug("\n\n Testing scheduleACK()")
+        # #logger.debug("\n\n Testing scheduleACK()")
         sharedState = nc_shared_state.SharedState()
         neighbour = "00:00:00:01:00:00"
         seq_no = 2
@@ -54,7 +54,7 @@ class TestSharedState(unittest.TestCase):
         self.assertEqual(sharedState.ack_queue[-1].ack_map, 59)
 
     def test_scheduleReceipts(self):
-        # logger.debug("\n\n Testing scheduleReceipts()")
+        # #logger.debug("\n\n Testing scheduleReceipts()")
         sharedState = nc_shared_state.SharedState()
         neighbour = "00:00:00:01:00:00"
         ip_seq_no = 1
@@ -242,7 +242,7 @@ class TestSharedState(unittest.TestCase):
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestSharedState)
     unittest.TextTestRunner(verbosity=2).run(suite)
-    logger.debug("Tests run")
+    #logger.debug("Tests run")
 
 
 if __name__ == '__main__':

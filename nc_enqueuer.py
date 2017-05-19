@@ -9,7 +9,7 @@ class Enqueuer(object):
         self.streamOrderer = streamOrderer
         self.sharedState = sharedState
         logging.config.fileConfig('logging.conf')
-        self.logger = logging.getLogger('nc_node.ncEnqueuer')
+        #self.#logger =logging.getLogger('nc_node.ncEnqueuer')
 
     def enqueue(self, cope_packet):
         # Enqueue packet, or send to application layer if
@@ -18,8 +18,8 @@ class Enqueuer(object):
         # based on some routing (Srcr) algorithm?
         # Currently, nexthop addresses are assigned according to previously heard packets, that is learned closest neighbours
 
-        self.logger.debug("Got packet to enqueue")
-        # self.logger.debug("Encoded NUM %d" % len(cope_packet.encoded_pkts))
+        #self.#logger.debug("Got packet to enqueue")
+        # #self.#logger.debug("Encoded NUM %d" % len(cope_packet.encoded_pkts))
 
         # Control packet
         if len(cope_packet.encoded_pkts) == 0:
@@ -27,13 +27,13 @@ class Enqueuer(object):
             return
 
         if len(cope_packet.encoded_pkts) > 1:
-            self.logger.critical("Encoded packet lengths in enqueuer should not be longer than 1: %d" % len(cope_packet.encoded_pkts))
+            #self.#logger.critical("Encoded packet lengths in enqueuer should not be longer than 1: %d" % len(cope_packet.encoded_pkts))
             raise Exception("Encoded packet lengths too long")
 
         # Steps for putting in stream orderer
         # 1. Check the encoded header, if it is meant for me, pass it to app layer, and stop forwarding
         if cope_packet.encoded_pkts[0].nexthop == self.sharedState.get_my_hw_addr():
-            self.logger.debug("Packet sent to stream orderer")
+            #self.#logger.debug("Packet sent to stream orderer")
             self.streamOrderer.order_stream(cope_packet)
             return
 
@@ -41,7 +41,7 @@ class Enqueuer(object):
         # If it is a native packet, check IP address and forward to neighbour closest
 
         if len(cope_packet.encoded_pkts) == 1:
-            self.logger.debug("Forwarding packet")
+            #self.#logger.debug("Forwarding packet")
 
             # Check the IP dst address, if in sharedState dict, will use correct MAC address for forwarding
             ip_pkt = network_utils.check_IPPacket(str(cope_packet.payload))
@@ -57,6 +57,6 @@ class Enqueuer(object):
                     # cope_packet.show2()
                 # If IP address is not know, forward to everyone
                 else:
-                    self.logger.error("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst)
+                    #self.#logger.error("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst)
                     raise Exception("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst)
                     # self.sharedState.addPacketToOutputQueue(self.broadcast_HWAddr, cope_packet)

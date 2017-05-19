@@ -10,7 +10,7 @@ import nc_acks_receipts
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_ncacksreceipt')
+#logger =logging.getLogger('nc_node.test_ncacksreceipt')
 
 
 class TestACKRecps(unittest.TestCase):
@@ -137,7 +137,7 @@ class TestACKRecps(unittest.TestCase):
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestACKRecps)
     unittest.TextTestRunner(verbosity=2).run(suite)
-    logger.debug("Tests run")
+    #logger.debug("Tests run")
 
 
 if __name__ == '__main__':

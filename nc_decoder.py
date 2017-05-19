@@ -17,16 +17,16 @@ class Decoder(object):
         self.sharedState = sharedState
         self.enqueuer = enqueuer
         logging.config.fileConfig('logging.conf')
-        self.logger = logging.getLogger('nc_node.ncDecoder')
-        # self.logger.critical("Starting ncDecoderLogger")
+        #self.#logger =logging.getLogger('nc_node.ncDecoder')
+        # #self.#logger.critical("Starting ncDecoderLogger")
 
     def decode(self, cope_pkt, from_neighbour):
-        self.logger.debug("Got packet to decode")
+        #self.#logger.debug("Got packet to decode")
         # Decode the COPE packets contained in this packet
         # Schedule ACKs and receipt reports
         # ACK or Reception packet
 
-        self.logger.debug("Encoded NUM %d" % len(cope_pkt.encoded_pkts))
+        #self.#logger.debug("Encoded NUM %d" % len(cope_pkt.encoded_pkts))
         if len(cope_pkt.encoded_pkts) == 0:
             # No packets to decode
             return True
@@ -37,15 +37,15 @@ class Decoder(object):
             # Check if I must process it
             if cope_pkt.encoded_pkts[0].nexthop == self.sharedState.get_my_hw_addr():
 
-                self.logger.info("Native packet decoded")
-                # self.logger.debug("Uncoded pkt: putting pkt_id in packet_ids_recv set")
+                #self.#logger.info("Native packet decoded")
+                # #self.#logger.debug("Uncoded pkt: putting pkt_id in packet_ids_recv set")
                 pkt_id = cope_pkt.encoded_pkts[0].pkt_id
-                # self.logger.debug("Pkt_id %d" % pkt_id)
+                # #self.#logger.debug("Pkt_id %d" % pkt_id)
                 self.sharedState.addPacketToPacketPool(pkt_id, cope_pkt)
                 # Do ACK scheduling here
-                # self.logger.info("Uncoded pkt seen: %d, received %d" % (len(self.sharedState.pkts_ids_received), packets_received))
+                # #self.#logger.info("Uncoded pkt seen: %d, received %d" % (len(self.sharedState.pkts_ids_received), packets_received))
                 # if from_neighbour == self.sharedState.get_my_hw_addr():
-                #     self.logger.debug("Overheard locally, do not schedule ACK")
+                #     #self.#logger.debug("Overheard locally, do not schedule ACK")
                 #
                 # else:
                 self.sharedState.scheduleACK(from_neighbour, cope_pkt.local_pkt_seq_num)
@@ -59,22 +59,22 @@ class Decoder(object):
 
             # I am not the nexthop, keep the packet for decoding other packets
             else:
-                self.logger.debug("Native packet stored")
+                #self.#logger.debug("Native packet stored")
                 pkt_id = cope_pkt.encoded_pkts[0].pkt_id
                 self.sharedState.addPacketToPacketPool(pkt_id, cope_pkt)
 
         # Encoded packet, check if one of the packet are meant for me
         elif len(cope_pkt.encoded_pkts) >= 2 and cope_pkt.check_nexthops(self.sharedState.get_my_hw_addr()):
-            self.logger.debug("Got encoded packet")
+            #self.#logger.debug("Got encoded packet")
             decoded_payload = ""
             missing_headers = list()
             for header in cope_pkt.encoded_pkts:
                 if header.pkt_id not in self.sharedState.packet_ids_recv:
-                    self.logger.debug("Packet " +str(header.pkt_id) + " not found for decoding")
+                    #self.#logger.debug("Packet " +str(header.pkt_id) + " not found for decoding")
                     missing_headers.append(header)
                     
                     if len(missing_headers) > 1:
-                        self.logger.error("Not decodable")
+                        #self.#logger.error("Not decodable")
                         return False
 
                 else:
@@ -86,7 +86,7 @@ class Decoder(object):
             # If len = 0, no new native packets were discovered, if more than 1, undecodable
             if len(missing_headers) == 1:
                 hex_text = coding_utils.print_hex("Decoded payload", decoded_payload)
-                self.logger.debug("Decoded payload: " + hex_text)
+                #self.#logger.debug("Decoded payload: " + hex_text)
                 decoded_native_pkt = COPE_classes.COPE_packet()
                 decoded_native_pkt.encoded_pkts.append(missing_headers[0])
                 decoded_pkt_id = decoded_native_pkt.encoded_pkts[0].pkt_id
@@ -97,11 +97,11 @@ class Decoder(object):
                 # Debug
                 # decoded_native_pkt.show2()
                 decoded_packet_str = coding_utils.COPE_to_str(decoded_native_pkt)
-                # self.logger.debug(decoded_packet_str)
+                # #self.#logger.debug(decoded_packet_str)
 
                 self.sharedState.addPacketToPacketPool(decoded_pkt_id, decoded_native_pkt)
                 self.sharedState.incrementPacketsDecoded()
-                # self.logger.info("Packets decoded: %d" % (self.sharedState.getPacketsDecoded()))
+                # #self.#logger.info("Packets decoded: %d" % (self.sharedState.getPacketsDecoded()))
 
                 self.enqueuer.enqueue(decoded_native_pkt)
 

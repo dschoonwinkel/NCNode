@@ -2,7 +2,7 @@ import scapy.all as scapy
 import logging
 import logging.config
 import COPE_packet_classes as COPE_classes
-import coding_utils
+import time
 
 class Encapsulator(object):
 
@@ -10,11 +10,11 @@ class Encapsulator(object):
         self.sharedState = sharedState
         self.enqueuer = enqueuer
         logging.config.fileConfig('logging.conf')
-        self.logger = logging.getLogger('nc_node.Encapsulator')
+        #self.#logger =logging.getLogger('nc_node.Encapsulator')
         self.broadcast_HWAddr = "ff:ff:ff:ff:ff:ff"
 
     def encapsulate(self, data, IP_addr):
-        self.logger.debug("Got packet to encapsulate")
+        #self.#logger.debug("Got packet to encapsulate")
 
         src_ip = self.sharedState.get_my_ip_addr()
         local_seq_no = self.sharedState.getAndIncrementLocalSeqNum()
@@ -28,6 +28,9 @@ class Encapsulator(object):
         cope_pkt.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=self.broadcast_HWAddr))
         cope_pkt.local_pkt_seq_num = local_seq_no
 
-        # self.logger.debug(coding_utils.print_hex("IP packet hex", str(ip_pkt)))
         # cope_pkt.show2()
+
+        self.sharedState.times.append(("Encapsulator processed", time.time()))
+
+
         self.enqueuer.enqueue(cope_pkt)

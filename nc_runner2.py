@@ -12,7 +12,7 @@ from nc_network_instance import NetworkInstanceAdapter
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.ncRunner')
+#logger =logging.getLogger('nc_node.ncRunner')
 import time
 import scapy.all as scapy
 import crc_funcs
@@ -20,7 +20,7 @@ import network_utils
 import nc_encapsulator
 import nc_udpstreamreader
 import nc_app_instance
-
+import pickle
 
 packetDispatcher = None
 network_node_list = list(["10.0.0.1", "10.0.0.2"])
@@ -47,7 +47,7 @@ def setup_NCNode(sharedState):
     # Start listener on each port that represents a node in the network
     for ip_addr in network_node_list:
         listener_port = network_utils.ipToListenerPort(ip_addr)
-        logger.debug("Starting streamHandler on ")
+        #logger.debug("Starting streamHandler on ")
         streamHandler = nc_udpstreamreader.UDPStreamHandler(sharedState, listener_port, encapsulator)
         streamHandler.start()
         streamHandlers.append(streamHandler)
@@ -98,7 +98,7 @@ def test_sender(sharedState):
     cope_pkt.calc_checksum()
     dstMAC = "00:00:00:00:00:02"
     cope_pkt.build()
-    logger.debug("NC Runner: Encoded num %d" % len(cope_pkt.encoded_pkts))
+    #logger.debug("NC Runner: Encoded num %d" % len(cope_pkt.encoded_pkts))
 
 
     sharedState.addPacketToOutputQueue(dstMAC, cope_pkt)
@@ -127,7 +127,7 @@ def main():
 
 
 
-    logger.info("Starting Runner loop \n******************* \n\n\n*******************\n\n\n*******************")
+    #logger.info("Starting Runner loop \n******************* \n\n\n*******************\n\n\n*******************")
     try:
         while (1):
             raw_input()
@@ -135,7 +135,13 @@ def main():
 
 
     except KeyboardInterrupt:
-        logger.info("Closing gracefully")
+        # logger.info("Closing gracefully")
+        print "Closing gracefully"
+        pass
+
+        # print "Times", sharedState.times
+        f = open("exec_times_%s.log" % network_utils.get_first_IPAddr(), 'w')
+        pickle.dump(sharedState.times, f)
 
 
 if __name__ == '__main__':

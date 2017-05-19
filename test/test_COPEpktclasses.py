@@ -2,7 +2,7 @@ import unittest
 import COPE_packet_classes as COPE_classes
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_copepktclasses')
+#logger =logging.getLogger('nc_node.test_copepktclasses')
 import crc_funcs
 
 
@@ -77,7 +77,7 @@ class TestCOPEPktClasses(unittest.TestCase):
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestCOPEPktClasses)
     unittest.TextTestRunner(verbosity=2).run(suite)
-    logger.debug("Tests run")
+    #logger.debug("Tests run")
 
 
 if __name__ == '__main__':

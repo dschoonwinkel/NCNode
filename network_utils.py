@@ -8,7 +8,7 @@ import netifaces
 import COPE_packet_classes as COPE_classes
 
 logging.config.fileConfig("logging.conf")
-logger = logging.getLogger("nc_node.network_utils")
+#logger =logging.getLogger("nc_node.network_utils")
 
 
 def get_first_IPAddr():
@@ -74,16 +74,16 @@ def check_IPPacket(message_bytes):
     # Check minimum IP header size
     ip_pkt = None
     message_bytes = str(message_bytes)
-    # logger.debug(coding_utils.print_hex("Checking for IP packet", message_bytes))
+    # #logger.debug(coding_utils.print_hex("Checking for IP packet", message_bytes))
     if len(message_bytes) >= 20:
-        # logger.debug("Possible IP packet")
+        # #logger.debug("Possible IP packet")
         ip_pkt = scapy.IP(message_bytes)
 
         payload_len = len(ip_pkt.payload)
-        # logger.debug("total_pkt_len", len(message_bytes))
-        # logger.debug("header len", (len(message_bytes) - payload_len))
-        # logger.debug("payload len", payload_len)
-        # logger.debug("Checksum", scapy.utils.checksum(message_bytes[:-payload_len]))
+        # #logger.debug("total_pkt_len", len(message_bytes))
+        # #logger.debug("header len", (len(message_bytes) - payload_len))
+        # #logger.debug("payload len", payload_len)
+        # #logger.debug("Checksum", scapy.utils.checksum(message_bytes[:-payload_len]))
 
         # If zero payload len is not treated correctly, entire packet is removed in substring error
         if payload_len == 0:
@@ -91,7 +91,7 @@ def check_IPPacket(message_bytes):
                 return ip_pkt
 
         if scapy.utils.checksum(message_bytes[:-payload_len]) == 0:
-            # logger.debug("Checksum correct")
+            # #logger.debug("Checksum correct")
             return ip_pkt
 
     return None
@@ -106,13 +106,13 @@ def dissectCOPE_pkt(ether_pkt):
 
     cope_pkt, raw_ip = coding_utils.extr_COPE_pkt(str(ether_pkt.payload))
     if not cope_pkt:
-        logger.error("COPE packet was None")
+        #logger.error("COPE packet was None")
         return cope_pkt, ip_pkt, raw_data
 
     ip_pkt = check_IPPacket(str(cope_pkt.payload))
 
     if not ip_pkt:
-        logger.error("IP packet was None")
+        #logger.error("IP packet was None")
         return cope_pkt, ip_pkt, raw_data
 
     raw_data = str(ip_pkt[scapy.Raw])
@@ -133,9 +133,9 @@ if __name__ == '__main__':
     # hw_addr2 = get_HWAddr("eth0")
     # hw_addr2 = get_HWAddr("h1-eth0")
     # hw_addr2 = get_HWAddr("h2-eth0")
-    logger.debug("Ip addr: %s" % str(ip_addr))
-    logger.debug("HW addr: %s" % str(hw_addr))
-    # logger.debug("Eth0 HW addr: %s" % str(hw_addr2))
-    logger.debug("Port number %d" % ipToListenerPort(ip_addr))
+    #logger.debug("Ip addr: %s" % str(ip_addr))
+    #logger.debug("HW addr: %s" % str(hw_addr))
+    # #logger.debug("Eth0 HW addr: %s" % str(hw_addr2))
+    #logger.debug("Port number %d" % ipToListenerPort(ip_addr))
 
 

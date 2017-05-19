@@ -7,13 +7,13 @@ import scapy.all as scapy
 import network_utils
 
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_netwutils')
+#logger =logging.getLogger('nc_node.test_netwutils')
 
 class TestNetworkUtils(unittest.TestCase):
 
 	def test_getFirstIPAddr(self):
 		ip_addr = network_utils.get_first_IPAddr()
-		# logger.debug("ip addr returned %s" % ip_addr)
+		# #logger.debug("ip addr returned %s" % ip_addr)
 		self.assertEqual(ip_addr, "10.0.0.1")
 
 	def test_checkIPPacket(self):
@@ -49,7 +49,7 @@ class TestNetworkUtils(unittest.TestCase):
 def main():
 	suite = unittest.TestLoader().loadTestsFromTestCase(TestNetworkUtils)
 	unittest.TextTestRunner(verbosity=2).run(suite)
-	logger.debug("Tests run")
+	#logger.debug("Tests run")
 
 if __name__ == '__main__':
 	main()

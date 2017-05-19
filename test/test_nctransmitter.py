@@ -8,7 +8,7 @@ import mock
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_nctransmitter')
+#logger =logging.getLogger('nc_node.test_nctransmitter')
 
 class TestTransmitter(unittest.TestCase):
 
@@ -65,7 +65,7 @@ class TestTransmitter(unittest.TestCase):
 def main():
 	suite = unittest.TestLoader().loadTestsFromTestCase(TestTransmitter)
 	unittest.TextTestRunner(verbosity=2).run(suite)
-	logger.debug("Tests run")
+	#logger.debug("Tests run")
 
 if __name__ == '__main__':
 	main()

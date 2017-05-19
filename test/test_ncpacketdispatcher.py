@@ -7,7 +7,7 @@ import scapy.all as scapy
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_ncpacketdispatcher')
+#logger =logging.getLogger('nc_node.test_ncpacketdispatcher')
 
 class TestPacketDispatcher(unittest.TestCase):
 
@@ -43,7 +43,7 @@ class TestPacketDispatcher(unittest.TestCase):
 def main():
 	suite = unittest.TestLoader().loadTestsFromTestCase(TestPacketDispatcher)
 	unittest.TextTestRunner(verbosity=2).run(suite)
-	logger.debug("Tests run")
+	#logger.debug("Tests run")
 
 if __name__ == '__main__':
 	main()

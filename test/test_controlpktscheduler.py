@@ -6,7 +6,7 @@ import mock
 import time
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_ncscheduler')
+#logger =logging.getLogger('nc_node.test_ncscheduler')
 
 
 class TestControlPktWaiter(unittest.TestCase):
@@ -141,7 +141,7 @@ class TestControlPktWaiter(unittest.TestCase):
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestControlPktWaiter)
     unittest.TextTestRunner(verbosity=2).run(suite)
-    logger.debug("Tests run")
+    #logger.debug("Tests run")
 
 
 if __name__ == '__main__':

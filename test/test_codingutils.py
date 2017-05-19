@@ -6,7 +6,7 @@ import coding_utils
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_codingutils')
+#logger =logging.getLogger('nc_node.test_codingutils')
 
 class TestCodingUtils(unittest.TestCase):
 
@@ -78,7 +78,7 @@ class TestCodingUtils(unittest.TestCase):
 def main():
 	suite = unittest.TestLoader().loadTestsFromTestCase(TestCodingUtils)
 	unittest.TextTestRunner(verbosity=2).run(suite)
-	logger.debug("Tests run")
+	#logger.debug("Tests run")
 
 if __name__ == '__main__':
 	main()

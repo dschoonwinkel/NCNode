@@ -9,10 +9,10 @@ class NetworkInstanceAdapter(object):
     def __init__(self, iface):
         self.iface = iface
         logging.config.fileConfig('logging.conf')
-        self.logger = logging.getLogger('nc_node.NetworkInstanceAdapter')
+        #self.#logger =logging.getLogger('nc_node.NetworkInstanceAdapter')
     
     def sendPkt(self, pkt):
-        self.logger.debug("Sending packet on %s", self.iface)
+        #self.#logger.debug("Sending packet on %s", self.iface)
         scapy.sendp(pkt, iface=self.iface, verbose=0)
     
 def main():

@@ -12,7 +12,7 @@ from nc_network_instance import NetworkInstanceAdapter
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.ncRunner')
+#logger =logging.getLogger('nc_node.ncRunner')
 import time
 import scapy.all as scapy
 import crc_funcs
@@ -48,7 +48,7 @@ def test_sender(sharedState):
     cope_pkt.calc_checksum()
     dstMAC = "00:00:00:00:00:01"
     cope_pkt.build()
-    logger.debug("NC Runner: Encoded num %d" % len(cope_pkt.encoded_pkts))
+    #logger.debug("NC Runner: Encoded num %d" % len(cope_pkt.encoded_pkts))
 
 
     sharedState.addPacketToOutputQueue(dstMAC, cope_pkt)
@@ -78,15 +78,15 @@ def main():
 
 
 
-    logger.info("Starting Runner loop")
+    #logger.info("Starting Runner loop")
     try:
         while True:
             pass
 
     except KeyboardInterrupt:
-        logger.info("Closing graciously")
+        #logger.info("Closing graciously")
+        pass
         
-
 
 if __name__ == '__main__':
     main()
