@@ -13,12 +13,12 @@ class PacketDispatcher(object):
 
     def dispatch(self):
 
-        if len(self.sharedState.output_queue_order) >= self.sharedState.getMinBufferLen():
+        if len(self.sharedState.output_queue_order) >= self.sharedState.getMinBufferLen():      # 500 ns
             #self.#logger.debug("Taking packet from the front of packet queue")
-            dstMAC = self.sharedState.output_queue_order[0]
-            out_pkt = self.sharedState.getHeadPacketFromQueues()
+            dstMAC = self.sharedState.output_queue_order[0]                                     #102 ns
+            out_pkt = self.sharedState.getHeadPacketFromQueues()                                # 15.5 ms   Hopefully faster now that a deque is used
             # out_pkt.show2()
-            self.sharedState.times.append(("Packet dispatcher send", time.time()))
+            self.sharedState.times["Packet dispatcher send"].append(time.time())
             self.encoder.encode(out_pkt)
         else:
             #self.#logger.debug("Output queue is too short")

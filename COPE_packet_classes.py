@@ -35,7 +35,7 @@ class ACKHeader(Packet):
 class COPE_packet(Packet):
     name = "COPE packet"
     fields_desc = [FieldLenField("ENCODED_NUM", None, count_of='encoded_pkts'),
-            PacketListField('encoded_pkts', None, EncodedHeader, 
+            PacketListField('encoded_pkts', None, EncodedHeader,
                                    count_from = lambda pkt: pkt.ENCODED_NUM),
             FieldLenField("REPORT_NUM", None, count_of='reports'),
             PacketListField('reports', None, ReportHeader, 
@@ -45,6 +45,15 @@ class COPE_packet(Packet):
             PacketListField('acks', None, ACKHeader, 
                                    count_from = lambda pkt: pkt.ACK_NUM),
             ShortField("checksum", 0)]
+
+    def __init__(self, val=""):
+        # Build scapy packet
+        super(COPE_packet, self).__init__(val)
+
+        # Initialise the list variables
+        self.encoded_pkts = list()
+        self.reports = list()
+        self.acks = list()
 
     def calc_checksum(self):
       # Remember to calculate checksum only of COPE header and not the whole packet

@@ -9,12 +9,16 @@ import nc_enqueuer
 import nc_stream_orderer
 import coding_utils
 import time
+import pickle
+import network_utils
+import udpreader
 
 class UDPPortToIP(object):
 
     port_to_IP = dict()
     port_to_IP[10001] = "10.0.0.1"
     port_to_IP[10002] = "10.0.0.2"
+    port_to_IP[10900] = "10.0.0.1"
 
     @staticmethod
     def ip_from_udpport(portnumber):
@@ -44,12 +48,14 @@ class UDPStreamHandler(threading.Thread):
             # Send the data to the encapsulator
             #self.#logger.debug(coding_utils.print_hex("Received data", data))
 
-            self.sharedState.times.append(("Streamreader received", time.time()))
+            self.sharedState.times["Streamreader received"].append(time.time())
             self.encapsulator.encapsulate(data, UDPPortToIP.ip_from_udpport(self.listening_port))
+            # self.sharedState.times["Encapsulation, enqueing done"].append(time.time())
 
 def main():
     sharedState = nc_shared_state.SharedState()
     sharedState.ip_to_mac["10.0.0.2"] = "00:00:00:00:00:02"
+    sharedState.ip_to_mac["10.0.0.1"] = "00:00:00:00:00:01"
     streamOrderer = nc_stream_orderer.StreamOrderer(sharedState)
     enqueuer = nc_enqueuer.Enqueuer(sharedState, streamOrderer)
     encapsulator = nc_encapsulator.Encapsulator(sharedState, enqueuer)
@@ -63,7 +69,11 @@ def main():
             pass
 
     except KeyboardInterrupt:
+        sharedState.stopWaiters()
         print "Closing gracefully"
+        print sharedState.times
+        f = open("exec_times_%s.log" % network_utils.get_first_IPAddr(), 'w')
+        pickle.dump(sharedState.times, f)
 
 
 if __name__ == '__main__':

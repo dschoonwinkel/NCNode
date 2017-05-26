@@ -21,7 +21,13 @@ class SharedState(object):
 
 
         # Debugging variable
-        self.times = list()
+        self.times = dict()
+        self.times["Streamreader received"] = list()
+        self.times["Encapsulation, enqueing done"] = list()
+        self.times["Encapsulator processed"] = list()
+        self.times["Packet dispatcher send"] = list()
+        self.times["Transmitter send"] = list()
+        self.times['Message sent'] = list()
 
 
 
@@ -50,16 +56,16 @@ class SharedState(object):
 
         #Packet output queues
         self.packet_queues = dict()                   # dict(dstMAC, Deque)
-        self.output_queue_order = list()              # list of dstMACs to keep order of stream correct
-        self.ack_queue = list()                       # ACKs scheduled for transmission
+        self.output_queue_order = deque()              # list of dstMACs to keep order of stream correct
+        self.ack_queue = deque()                       # ACKs scheduled for transmission
         self.ack_history = dict()                     # dict(MAC, byte) ACK report cumulative history
-        self.receipts_queue = list()                  # Receipt reports scheduled for distribution        
+        self.receipts_queue = deque()                  # Receipt reports scheduled for distribution
         self.receipts_history = dict()                # dict(SRC_IP, byte) Reception reports cumulative history
 
         #Packet pool, recv set, application queue
         self.packet_pool = dict()                     # dict(pkt_id, cope_pkt)
         self.packet_ids_recv = Set()                  # Set(pkt_ids)
-        self.app_queue = deque                # Queue (cope_pkts) -- received and ordered packets ready to be dispatched to app layer
+        self.app_queue = deque()                # Queue (cope_pkts) -- received and ordered packets ready to be dispatched to app layer
 
         # Neighbour state
         self.neighbour_seqnr_sent = dict()                # dict(MAC, int)
@@ -262,7 +268,7 @@ class SharedState(object):
     def getOutputQueueReady(self, first_addr = ""):
         # Queue length check will only be done once a valid COPE packet
         # is received -- consider revising this later
-        packet_queues_ready = list()
+        packet_queues_ready = deque()
 
         # #######################
         # This is not order safe
@@ -332,9 +338,9 @@ class SharedState(object):
 
     def scheduleACK(self, neighbour, seq_no):
         #self.#logger.debug("scheduling ACK for seq_no %d" % seq_no)
-        ack_header = COPE_classes.ACKHeader()
-        ack_header.neighbour = neighbour
-        ack_header.last_ack = seq_no
+        ack_header = COPE_classes.ACKHeader()                               #TODO 70 us
+        ack_header.neighbour = neighbour                                    #TODO 8.7 us
+        ack_header.last_ack = seq_no                                        #TODO 8.5 us
 
         ackmap = 0
         if neighbour in self.ack_history:
@@ -346,17 +352,17 @@ class SharedState(object):
         seq_no_difference = 8
 
         # Find the correct seqno distance, if not default
-        for ack in reversed(self.ack_queue):
-            if ack.neighbour == neighbour:
-                seq_no_difference = seq_no - ack.last_ack
+        for ack in reversed(self.ack_queue):                               # TODO 1 us, depending on ack_queue size
+            if ack.neighbour == neighbour:                                 # TODO 2.8 us
+                seq_no_difference = seq_no - ack.last_ack                  # TODO 2.6 us
                 break
 
         # This happens when a resent packet arrives after the next packet in the stream
-        if seq_no_difference < 0:
+        if seq_no_difference < 0:                                         # TODO 80 ns
             # If still within the byte, add the report to the ack_history, but do nothing else
-            if seq_no_difference >= -7:
+            if seq_no_difference >= -7:                                   # TODO 80 ns
                 #self.#logger.debug("Adding ack to ack_history")
-                ackmap = (ackmap | (1 << -seq_no_difference)) & 255
+                ackmap = (ackmap | (1 << -seq_no_difference)) & 255       # TODO 300 ns
             # Else: Simply discard the report, it is probably stale anyway
             else:
                 return
@@ -364,17 +370,17 @@ class SharedState(object):
             # Shift the ackmap by the difference in seq_no
             ackmap = (ackmap << seq_no_difference | 1) & 255
 
-        self.ack_history[neighbour] = ackmap
-        ack_header.ack_map = ackmap
+        self.ack_history[neighbour] = ackmap                              # TODO 220 ns
+        ack_header.ack_map = ackmap                                       # TODO 9 us
 
-        self.ack_queue.append(ack_header)
+        self.ack_queue.append(ack_header)                                 # TODO 270 ns
 
 
 
     def scheduleReceipts(self, cope_pkt):
         receipt_header = COPE_classes.ReportHeader()
 
-        ip_pkt = network_utils.check_IPPacket(cope_pkt.payload)
+        ip_pkt = network_utils.check_IPPacket(cope_pkt.payload)           # TODO 800 us
 
         # If the payload does not contain an IP packet, receipt reports can not be scheduled
         if ip_pkt:
@@ -420,11 +426,14 @@ class SharedState(object):
 
             self.receipts_queue.append(receipt_header)
 
-    def stopACKWaiters(self):
+    def stopWaiters(self):
+        self.run_event.clear()
         print self.ack_waiters.keys()
         for key in list(self.ack_waiters.keys()):
             # print key
             self.ack_waiters[key].stopWaiter()
+
+        self.controlPktWaiter.stopWaiter()
 
 def main():
     #self.#logger.config.fileConfig('#self.#logger.conf')

@@ -73,13 +73,13 @@ def get_HWAddr(ifacename):
 def check_IPPacket(message_bytes):
     # Check minimum IP header size
     ip_pkt = None
-    message_bytes = str(message_bytes)
+    message_bytes = str(message_bytes)                                                      # TODO 200 ns
     # #logger.debug(coding_utils.print_hex("Checking for IP packet", message_bytes))
-    if len(message_bytes) >= 20:
+    if len(message_bytes) >= 20:                                                            # TODO 200 ns
         # #logger.debug("Possible IP packet")
-        ip_pkt = scapy.IP(message_bytes)
+        ip_pkt = scapy.IP(message_bytes)                                                    # TODO 300 us
 
-        payload_len = len(ip_pkt.payload)
+        payload_len = len(ip_pkt.payload)                                                   # TODO 1.5 us
         # #logger.debug("total_pkt_len", len(message_bytes))
         # #logger.debug("header len", (len(message_bytes) - payload_len))
         # #logger.debug("payload len", payload_len)

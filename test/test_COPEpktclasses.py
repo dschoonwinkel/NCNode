@@ -4,6 +4,7 @@ import logging.config
 logging.config.fileConfig('logging.conf')
 #logger =logging.getLogger('nc_node.test_copepktclasses')
 import crc_funcs
+import coding_utils
 
 
 class TestCOPEPktClasses(unittest.TestCase):
@@ -61,6 +62,7 @@ class TestCOPEPktClasses(unittest.TestCase):
         hw_dest1 = "00:00:00:00:00:01"
         header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
         cope_pkt.encoded_pkts.append(header1)
+        # print coding_utils.print_hex("Simple COPE packet", str(cope_pkt))
         self.assertEqual(len(str(cope_pkt)), 26)
 
         report = COPE_classes.ReportHeader(src_ip = "10.0.0.2", last_pkt=1, bit_map=1)

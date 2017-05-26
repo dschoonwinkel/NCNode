@@ -15,6 +15,9 @@ class ControlPktWaiter(threading.Thread):
         #self.#logger =logging.getLogger('nc_node.ControlPktWaiter')
 
 
+    def stopWaiter(self):
+        self.stop_event.set()
+
     def restartWaiter(self):
         # Set the start_time = current_time to indicate that the waiting is reset, not timed out
         self.startTime = time.time()
@@ -40,7 +43,8 @@ class ControlPktWaiter(threading.Thread):
                 # #self.#logger.debug("Timeout has occured")
                 if len(self.sharedState.ack_queue) > 0 or len(self.sharedState.receipts_queue) > 0:
                     #self.#logger.debug("Sending control pkt")
-                    self.sharedState.packetDispatcher.dispatchControlPkt()
+                    if self.sharedState.packetDispatcher:
+                        self.sharedState.packetDispatcher.dispatchControlPkt()
             # Else if it was stopped or restarted, do nothing, the loop will restart waiting
 
             self.startTime = currentTime

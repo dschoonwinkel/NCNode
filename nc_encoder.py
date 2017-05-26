@@ -22,10 +22,10 @@ class Encoder(object):
         # Assure that packet with the same nexthop destination is not coded together
         #self.#logger.debug("Encoded num %d" %len(pkt.encoded_pkts))
 
-        if len(pkt.encoded_pkts) >= 1:
-            packet_queues_ready = self.sharedState.getOutputQueueReady(first_addr=pkt.encoded_pkts[0].nexthop)
+        if len(pkt.encoded_pkts) >= 1:                                                      # TODO 2.65
+            packet_queues_ready = self.sharedState.getOutputQueueReady(first_addr=pkt.encoded_pkts[0].nexthop)      #TODO 6.5 us
         else:
-            packet_queues_ready = self.sharedState.getOutputQueueReady()
+            packet_queues_ready = self.sharedState.getOutputQueueReady()                    #TODO 860 ns
 
         #self.#logger.debug("Packet queues ready: %s" % str(packet_queues_ready))
 

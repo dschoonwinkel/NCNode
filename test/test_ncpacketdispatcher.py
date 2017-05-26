@@ -16,7 +16,8 @@ class TestPacketDispatcher(unittest.TestCase):
 		cope_pkt = COPE_classes.COPE_packet()
 		
 		sharedState.addPacketToOutputQueue("00:00:00:00:00:01", cope_pkt)
-		
+		sharedState.min_buffer_len = 2
+
 		mockEncoder = mock.Mock()
 		packetDispatcher = nc_packet_dispatcher.PacketDispatcher(sharedState, mockEncoder)
 		packetDispatcher.dispatch()

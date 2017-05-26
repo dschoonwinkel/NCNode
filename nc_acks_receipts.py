@@ -52,14 +52,14 @@ class AddACKsReceipts(object):
             ack = self.sharedState.popACKReport()
             #self.#logger.debug("Add pktno %d ack to packet", ack.last_ack)
             # Perform adding here
-            pkt.acks = list()
+            # pkt.acks = list()
             pkt.acks.append(ack)
 
         for i in range(len(self.sharedState.receipts_queue)):
             recp = self.sharedState.popRecpReport()
             #self.#logger.debug("Add pktno %d recp to packet", recp.last_pkt)
             
-            pkt.reports = list()
+            # pkt.reports = list()
             pkt.reports.append(recp)            
         
         
