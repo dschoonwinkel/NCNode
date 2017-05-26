@@ -27,15 +27,15 @@ import pickle
 import cProfile
 import socket
 import numpy as np
-import udpsender
 
 packetDispatcher = None
 network_node_list = list(["10.0.0.1", "10.0.0.2"])
 streamHandlers = list()
 
-# UDP_IP = "127.0.0.1"
-# UDP_PORT = 10002
-# MESSAGE = "Hello, World!"
+UDP_IP = "127.0.0.1"
+UDP_PORT = 10002
+MESSAGE = "Hello, World!"
+
 #
 # print("UDP target IP:", UDP_IP)
 # print("UDP target port:", UDP_PORT)
@@ -103,22 +103,27 @@ def setup_sender(sharedState):
 
 
 def test_sender(sharedState):
-# global sock
+#   global sock
     sharedState.times['Message sent'].append(time.time())
     sock.sendto(bytes(MESSAGE), (UDP_IP, UDP_PORT))
 
 def main():
+    global sock
     sharedState = SharedState()
     setup_NCNode(sharedState)
     # test_receiver(sharedState)
     # setup_sender(sharedState)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
 
     time.sleep(1)
 
     # logger.info("Starting Runner loop \n******************* \n\n\n*******************\n\n\n*******************")
 
-    for i in range(1):
+    for i in range(10):
         test_sender(sharedState)
+        time.sleep(1e-3)
+
+    print "Send done"
     try:
         while (1):
             pass
