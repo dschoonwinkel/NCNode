@@ -55,7 +55,7 @@ def setup_NCNode(sharedState):
 
     # TODO: Improve this, this should not be hardcoded
     global network_node_list, streamHandlers
-    print sharedState.get_my_ip_addr()
+    print(sharedState.get_my_ip_addr())
     if sharedState.get_my_ip_addr() in network_node_list:
         network_node_list.remove(sharedState.get_my_ip_addr())
     # Start listener on each port that represents a node in the network
@@ -123,7 +123,7 @@ def main():
         test_sender(sharedState)
         time.sleep(1e-3)
 
-    print "Send done"
+    print("Send done")
     try:
         while (1):
             pass
@@ -131,15 +131,15 @@ def main():
 
     except KeyboardInterrupt:
         # logger.info("Closing gracefully")
-        print "Closing gracefully"
+        print("Closing gracefully")
         sharedState.run_event.clear()
         pass
 
-        print "Times", sharedState.times
+        print("Times", sharedState.times)
 
-        print "Sent to NC receive %s ms" % ((np.array(sharedState.times["Streamreader received"]) - np.array(sharedState.times['Message sent'])) * 1000)
-        print "Average NC receive %s ms" % (np.mean(
-        (np.array(sharedState.times["Streamreader received"]) - np.array(sharedState.times['Message sent'])) * 1000))
+        print("Sent to NC receive %s ms" % ((np.array(sharedState.times["Streamreader received"]) - np.array(sharedState.times['Message sent'])) * 1000))
+        print("Average NC receive %s ms" % (np.mean(
+        (np.array(sharedState.times["Streamreader received"]) - np.array(sharedState.times['Message sent'])) * 1000)))
 
 
         f = open("exec_times_%s.log" % network_utils.get_first_IPAddr(), 'w')

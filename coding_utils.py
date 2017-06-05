@@ -10,9 +10,16 @@ logging.config.fileConfig('logging.conf')
 
 
 def print_hex(title, payload):
-    hextext = title + ' '.join('%02X' % ord(x) for x in str(payload))
-    logging.debug(hextext)
-    return hextext
+    if type(payload) == str:
+        hextext = title + ' '.join('%02X' % ord(x) for x in str(payload))
+        return hextext
+    elif type(payload) == bytes:
+        hextext = title + ' '.join('%02X' % x for x in str(payload))
+        return hextext
+    else:
+        raise Exception("Incompatible type")
+    # logging.debug(hextext)
+
 
 
 def extr_COPE_pkt(payload_bytes):
@@ -67,3 +74,15 @@ def strxor(s0, s1):
 
     l = [chr(ord(a) ^ ord(b)) for a, b in zip(s0, s1)]
     return ''.join(l)
+
+def bytexor(b0, b1):
+    result_bytes = [a ^ b for a, b in zip(b0, b1)]
+    print(result_bytes)
+
+    if len(b0) > len(b1):
+        result_bytes.append(b0[len(b1):])
+    if len(b1) > len(b0):
+        result_bytes.append(b1[len(b0):])
+
+    return result_bytes
+    # return ''.join(l)

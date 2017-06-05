@@ -91,7 +91,7 @@ def main():
   #cope_pkt.show2()
   ls(cope_pkt)
   hextext = ' '.join('%02X' % ord(x) for x in str(cope_pkt))
-  print hextext
+  print(hextext)
 
 
 if __name__ == '__main__':

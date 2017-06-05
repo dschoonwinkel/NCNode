@@ -63,15 +63,15 @@ def main():
     streamHandler = UDPStreamHandler(sharedState, 10900, encapsulator)
     streamHandler.start()
 
-    print "Starting udpstreamreader loop"
+    print("Starting udpstreamreader loop")
     try:
         while (1):
             pass
 
     except KeyboardInterrupt:
         sharedState.stopWaiters()
-        print "Closing gracefully"
-        print sharedState.times
+        print("Closing gracefully")
+        print(sharedState.times)
         f = open("exec_times_%s.log" % network_utils.get_first_IPAddr(), 'w')
         pickle.dump(sharedState.times, f)
 

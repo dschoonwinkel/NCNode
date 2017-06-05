@@ -1,16 +1,11 @@
-#Imports
-from sets import Set
 from collections import deque
 import threading
 import logging
 import logging.config
-import COPE_packet_classes as COPE_classes
-import scapy.all as scapy
-import network_utils
 import nc_scheduler
 import network_utils
-import coding_utils
 import nc_netsetup
+from pypacker.layer12 import COPE_packet
 
 class SharedState(object):
 
@@ -64,14 +59,14 @@ class SharedState(object):
 
         #Packet pool, recv set, application queue
         self.packet_pool = dict()                     # dict(pkt_id, cope_pkt)
-        self.packet_ids_recv = Set()                  # Set(pkt_ids)
+        self.packet_ids_recv = set()                  # set(pkt_ids)
         self.app_queue = deque()                # Queue (cope_pkts) -- received and ordered packets ready to be dispatched to app layer
 
         # Neighbour state
         self.neighbour_seqnr_sent = dict()                # dict(MAC, int)
         self.neighbour_seqnr_recv = dict()                # dict(MAC, int)
-        self.neighbour_recp_rep = dict()             # dict(IP, Set())
-        self.neighbour_recvd = dict()                 # dict(MAC, Set())
+        self.neighbour_recp_rep = dict()             # dict(IP, set())
+        self.neighbour_recvd = dict()                 # dict(MAC, set())
         self.ack_waiters = dict()                    # dict(tuple(neighbour, ack_id), ACKWaiterThread)    -- ACK waiter threads for each sent packet
         self.controlPktWaiter = nc_scheduler.ControlPktWaiter(self)
         self.controlPktWaiter.start()
@@ -143,20 +138,20 @@ class SharedState(object):
 
     def addACK_waiter(self, neighbour, ack_id, waiter):
         self.ack_waiters[(neighbour, ack_id)] = waiter
-        # print self.ack_waiters.keys()
+        # print(self.ack_waiters.keys())
 
     def updateRecpReports(self, report):
         if report.src_ip not in self.neighbour_recp_rep:
             # Create reception report set for each neighbour
-            self.neighbour_recp_rep[report.src_ip] = Set()
+            self.neighbour_recp_rep[report.src_ip] = set()
 
         # Put the last_pkt number into the received reports for that neighbour
         self.neighbour_recp_rep[report.src_ip].add(report.last_pkt)
 
         for i in range(1, 8):
             if (report.bit_map >> i & 1):
-                # print bin(report.bit_map)
-                # print i, report.last_pkt - i - 1
+                # print(bin(report.bit_map))
+                # print(i, report.last_pkt - i - 1)
                 self.neighbour_recp_rep[report.src_ip].add(report.last_pkt - i - 1)
 
     def updateACKwaiters(self, ackreport, neighbour):
@@ -168,7 +163,7 @@ class SharedState(object):
 
                 # Add a neighbour recvd set if there none for this neighbour
                 if neighbour not in self.neighbour_recvd:
-                    self.neighbour_recvd[neighbour] = Set()
+                    self.neighbour_recvd[neighbour] = set()
 
                 # Pop removes and returns reference
                 ack_waiter = self.ack_waiters.pop((neighbour, ackreport.last_ack))
@@ -183,8 +178,8 @@ class SharedState(object):
             for i in range(1, 8):
                 if (ackreport.ack_map >> i & 1):
                     # #self.#logger.debug("updateACKwaiters stopping %d" % (ackreport.last_ack - i - 1))
-                    # print bin(report.ack_map)
-                    # print i, report.last_pkt - i - 1
+                    # print(bin(report.ack_map))
+                    # print(i, report.last_pkt - i - 1)
                     if (neighbour, ackreport.last_ack - i - 1) in self.ack_waiters:
                         # Pop removes and returns reference
                         #self.#logger.debug("removing " + str((neighbour, ackreport.last_ack - i - 1)) + " from ackwaiters")
@@ -338,7 +333,7 @@ class SharedState(object):
 
     def scheduleACK(self, neighbour, seq_no):
         #self.#logger.debug("scheduling ACK for seq_no %d" % seq_no)
-        ack_header = COPE_classes.ACKHeader()                               #TODO 70 us
+        ack_header = COPE_packet.ACKHeader()                               #TODO 70 us
         ack_header.neighbour = neighbour                                    #TODO 8.7 us
         ack_header.last_ack = seq_no                                        #TODO 8.5 us
 
@@ -378,59 +373,60 @@ class SharedState(object):
 
 
     def scheduleReceipts(self, cope_pkt):
-        receipt_header = COPE_classes.ReportHeader()
-
-        ip_pkt = network_utils.check_IPPacket(cope_pkt.payload)           # TODO 800 us
-
-        # If the payload does not contain an IP packet, receipt reports can not be scheduled
-        if ip_pkt:
-            # TODO: BEWARE!! This assumes that ip ID field are set up beforehand to be sequential. Could change
-            # as the packet moves across the network, but should be fine for subnets
-            src_ip = ip_pkt.src
-            ip_seq_no = ip_pkt.id
-            receipt_header.src_ip = src_ip
-            receipt_header.last_pkt = ip_seq_no
-
-            #self.#logger.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
-
-            bit_map = 0
-            if ip_pkt.src in self.receipts_history:
-                bit_map = self.receipts_history[src_ip]
-            else:
-                bit_map = 0
-
-            # Shift the old bitmap completely out of the map by default
-            seq_no_difference = 8
-
-            # Find the correct seqno distance, if not default
-            for report in reversed(self.receipts_queue):
-                if report.src_ip == src_ip:
-                    seq_no_difference = ip_seq_no - report.last_pkt
-                    break
-
-            # This happens when a resent packet arrives after the next packet in the stream
-            if seq_no_difference < 0:
-                # If still within the byte, add the report to the ack_history, but do nothing else
-                if seq_no_difference >= -7:
-                    #self.#logger.debug("Adding ack to ack_history")
-                    bit_map = (bit_map | (1 << -seq_no_difference)) & 255
-                # Else: Simply discard the report, it is probably stale anyway
-                else:
-                    return
-            else:
-                # Shift the ackmap by the difference in seq_no
-                bit_map = (bit_map << seq_no_difference | 1) & 255
-
-            self.receipts_history[src_ip] = bit_map
-            receipt_header.bit_map = bit_map
-
-            self.receipts_queue.append(receipt_header)
+        raise Exception("scheduleReceipts not implemented yet")
+        receipt_header = COPE_packet.ReportHeader()
+        #
+        # ip_pkt = network_utils.check_IPPacket(cope_pkt.payload)           # TODO 800 us
+        #
+        # # If the payload does not contain an IP packet, receipt reports can not be scheduled
+        # if ip_pkt:
+        #     # TODO: BEWARE!! This assumes that ip ID field are set up beforehand to be sequential. Could change
+        #     # as the packet moves across the network, but should be fine for subnets
+        #     src_ip = ip_pkt.src
+        #     ip_seq_no = ip_pkt.id
+        #     receipt_header.src_ip = src_ip
+        #     receipt_header.last_pkt = ip_seq_no
+        #
+        #     #self.#logger.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
+        #
+        #     bit_map = 0
+        #     if ip_pkt.src in self.receipts_history:
+        #         bit_map = self.receipts_history[src_ip]
+        #     else:
+        #         bit_map = 0
+        #
+        #     # Shift the old bitmap completely out of the map by default
+        #     seq_no_difference = 8
+        #
+        #     # Find the correct seqno distance, if not default
+        #     for report in reversed(self.receipts_queue):
+        #         if report.src_ip == src_ip:
+        #             seq_no_difference = ip_seq_no - report.last_pkt
+        #             break
+        #
+        #     # This happens when a resent packet arrives after the next packet in the stream
+        #     if seq_no_difference < 0:
+        #         # If still within the byte, add the report to the ack_history, but do nothing else
+        #         if seq_no_difference >= -7:
+        #             #self.#logger.debug("Adding ack to ack_history")
+        #             bit_map = (bit_map | (1 << -seq_no_difference)) & 255
+        #         # Else: Simply discard the report, it is probably stale anyway
+        #         else:
+        #             return
+        #     else:
+        #         # Shift the ackmap by the difference in seq_no
+        #         bit_map = (bit_map << seq_no_difference | 1) & 255
+        #
+        #     self.receipts_history[src_ip] = bit_map
+        #     receipt_header.bit_map = bit_map
+        #
+        #     self.receipts_queue.append(receipt_header)
 
     def stopWaiters(self):
         self.run_event.clear()
-        print self.ack_waiters.keys()
+        # print(self.ack_waiters.keys())
         for key in list(self.ack_waiters.keys()):
-            # print key
+            # print(key)
             self.ack_waiters[key].stopWaiter()
 
         self.controlPktWaiter.stopWaiter()

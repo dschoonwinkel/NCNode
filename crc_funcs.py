@@ -14,6 +14,7 @@ logging.config.fileConfig('logging.conf')
 #logger =logging.getLogger('nc_node.crcfuncs')
 
 def crc_hash(msg):
+    msg = msg.encode('ascii')
     return crc64(msg)
 
 def test_crchash():

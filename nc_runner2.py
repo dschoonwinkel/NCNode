@@ -42,7 +42,7 @@ def setup_NCNode(sharedState):
 
     # TODO: Improve this, this should not be hardcoded
     global network_node_list, streamHandlers
-    print sharedState.get_my_ip_addr()
+    print(sharedState.get_my_ip_addr())
     network_node_list.remove(sharedState.get_my_ip_addr())
     # Start listener on each port that represents a node in the network
     for ip_addr in network_node_list:
@@ -136,7 +136,7 @@ def main():
 
     except KeyboardInterrupt:
         # logger.info("Closing gracefully")
-        print "Closing gracefully"
+        print("Closing gracefully")
         pass
 
         # print "Times", sharedState.times

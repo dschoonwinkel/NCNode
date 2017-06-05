@@ -28,7 +28,7 @@ class NetworkListenerHelper(threading.Thread):
 
             while self.sharedState.run_event.is_set():
                 packet = listener_socket.recvfrom(65565)
-                # print threading.current_thread()
+                # print(threading.current_thread())
 
                 # Get packet from tuple
                 packet = packet[0]

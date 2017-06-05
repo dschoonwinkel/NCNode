@@ -115,7 +115,7 @@ class Tutorial(object):
 
     def act_like_coding_controller(self, packet, packet_in):
         global packet_queues, COPE_packet_received_count, COPE_packet_sent_native_count, COPE_packet_sent_encoded_count
-        # print packet
+        # print(packet)
 
         raw_bytes = packet.pack()
         log.debug("Raw bytes" + str(raw_bytes))
