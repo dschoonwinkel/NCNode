@@ -1,10 +1,12 @@
 import unittest
 import nc_shared_state
 import nc_encoder
-import COPE_packet_classes as COPE_classes
-import scapy.all as scapy
+# import COPE_packet_classes as COPE_classes
+# import scapy.all as scapy
+from pypacker.layer12 import cope
+from pypacker.layer3 import ip
 import coding_utils
-import mock
+from unittest.mock import Mock
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
@@ -15,32 +17,32 @@ class TestEncoder(unittest.TestCase):
 
     def test_encode(self):
         sharedState = nc_shared_state.SharedState()
-        mockAddAcksRecps = mock.Mock()
+        mockAddAcksRecps = Mock()
         encoder = nc_encoder.Encoder(sharedState, mockAddAcksRecps)
         hw_dest1 = "00:00:00:00:00:01"
         hw_dest2 = "00:00:00:00:00:02"
         hw_dest3 = "00:00:00:00:00:03"
-        header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
-        header2 = COPE_classes.EncodedHeader(pkt_id=2, nexthop=hw_dest2)
-        header3 = COPE_classes.EncodedHeader(pkt_id=3, nexthop=hw_dest3)
-        payload1 = "\x01"
-        payload2 = "\x02"
-        payload3 = "\x04"
+        header1 = cope.EncodedHeader(pkt_id=1, nexthop_s=hw_dest1)
+        header2 = cope.EncodedHeader(pkt_id=2, nexthop_s=hw_dest2)
+        header3 = cope.EncodedHeader(pkt_id=3, nexthop_s=hw_dest3)
+        payload1 = b"\x01"
+        payload2 = b"\x02"
+        payload3 = b"\x04"
 
-        cope_pkt1 = COPE_classes.COPE_packet()
+        cope_pkt1 = cope.COPE_packet()
 
         cope_pkt1.encoded_pkts.append(header1)
-        cope_pkt1.payload = scapy.Raw(payload1)
+        cope_pkt1.body_bytes = payload1
 
-        cope_pkt2 = COPE_classes.COPE_packet()
+        cope_pkt2 = cope.COPE_packet()
 
         cope_pkt2.encoded_pkts.append(header2)
-        cope_pkt2.payload = scapy.Raw(payload2)
+        cope_pkt2.body_bytes = payload2
 
-        cope_pkt3 = COPE_classes.COPE_packet()
+        cope_pkt3 = cope.COPE_packet()
 
         cope_pkt3.encoded_pkts.append(header3)
-        cope_pkt3.payload = scapy.Raw(payload3)
+        cope_pkt3.body_bytes = payload3
 
         sharedState.addPacketToOutputQueue(hw_dest2, cope_pkt2)
         sharedState.addPacketToOutputQueue(hw_dest3, cope_pkt3)
@@ -61,8 +63,9 @@ class TestEncoder(unittest.TestCase):
         encoder.encode(cope_pkt1)
 
         mockAddAcksRecps.addACKsRecps.assert_called()
+        # print(mockAddAcksRecps.addACKsRecps.call_args_list)
         encoded_pkt = mockAddAcksRecps.addACKsRecps.call_args_list[0][0][0]
-        self.assertEqual(str(encoded_pkt.payload), "\x07", "Encoding failed")
+        self.assertEqual(encoded_pkt.body_bytes, b"\x07", "Encoding failed")
 
         # header1.show2()
         # encoded_pkt.encoded_pkts[0].show2()
@@ -80,16 +83,16 @@ class TestEncoder(unittest.TestCase):
 
     def test_encode_native(self):
         sharedState = nc_shared_state.SharedState()
-        mockAddAcksRecps = mock.Mock()
+        mockAddAcksRecps = Mock()
         encoder = nc_encoder.Encoder(sharedState, mockAddAcksRecps)
         hw_dest1 = "00:00:00:00:00:01"
-        header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
-        payload1 = "\x01"
+        header1 = cope.EncodedHeader(pkt_id=1, nexthop_s=hw_dest1)
+        payload1 = b"\x01"
 
-        cope_pkt1 = COPE_classes.COPE_packet()
+        cope_pkt1 = cope.COPE_packet()
 
         cope_pkt1.encoded_pkts.append(header1)
-        cope_pkt1.payload = scapy.Raw(payload1)
+        cope_pkt1.body_bytes = payload1
 
         encoder.encode(cope_pkt1)
 
@@ -100,14 +103,14 @@ class TestEncoder(unittest.TestCase):
         # self.assertEqual(encoded_pkt.ENCODED_NUM, 1, "ENCODED_NUM incorrect")
         self.assertEqual(len(encoded_pkt.encoded_pkts), 1, "Encoded headers wrong len")
 
-        self.assertEqual(str(encoded_pkt.payload), "\x01", "Encoding failed")
+        self.assertEqual(encoded_pkt.body_bytes, b"\x01", "Encoding failed")
 
-        self.assertEqual(str(encoded_pkt.encoded_pkts[0]), str(header1), "Encoded header 1 incorrect")
+        self.assertEqual(encoded_pkt.encoded_pkts[0], header1, "Encoded header 1 incorrect")
 
 
     def test_findcodables(self):
         sharedState = nc_shared_state.SharedState()
-        mockAddAcksRecps = mock.Mock()
+        mockAddAcksRecps = Mock()
         encoder = nc_encoder.Encoder(sharedState, mockAddAcksRecps)
 
         # Create three different packets, meant for 3 destinations. Packets can only be coded together if each
@@ -115,16 +118,16 @@ class TestEncoder(unittest.TestCase):
         hw_dest1 = "00:00:00:00:00:01"
         hw_dest2 = "00:00:00:00:00:02"
         hw_dest3 = "00:00:00:00:00:03"
-        header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
-        cope_pkt1 = COPE_classes.COPE_packet()
+        header1 = cope.EncodedHeader(pkt_id=1, nexthop_s=hw_dest1)
+        cope_pkt1 = cope.COPE_packet()
         cope_pkt1.encoded_pkts.append(header1)
 
-        header2 = COPE_classes.EncodedHeader(pkt_id=2, nexthop=hw_dest2)
-        cope_pkt2 = COPE_classes.COPE_packet()
+        header2 = cope.EncodedHeader(pkt_id=2, nexthop_s=hw_dest2)
+        cope_pkt2 = cope.COPE_packet()
         cope_pkt2.encoded_pkts.append(header2)
 
-        header3 = COPE_classes.EncodedHeader(pkt_id=3, nexthop=hw_dest3)
-        cope_pkt3 = COPE_classes.COPE_packet()
+        header3 = cope.EncodedHeader(pkt_id=3, nexthop_s=hw_dest3)
+        cope_pkt3 = cope.COPE_packet()
         cope_pkt3.encoded_pkts.append(header3)
 
 
@@ -151,7 +154,7 @@ class TestEncoder(unittest.TestCase):
 
     def test_findcodables_missing1(self):
         sharedState = nc_shared_state.SharedState()
-        mockAddAcksRecps = mock.Mock()
+        mockAddAcksRecps = Mock()
         encoder = nc_encoder.Encoder(sharedState, mockAddAcksRecps)
 
         # Create three different packets, meant for 3 destinations. Packets can only be coded together if each
@@ -159,16 +162,16 @@ class TestEncoder(unittest.TestCase):
         hw_dest1 = "00:00:00:00:00:01"
         hw_dest2 = "00:00:00:00:00:02"
         hw_dest3 = "00:00:00:00:00:03"
-        header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
-        cope_pkt1 = COPE_classes.COPE_packet()
+        header1 = cope.EncodedHeader(pkt_id=1, nexthop_s=hw_dest1)
+        cope_pkt1 = cope.COPE_packet()
         cope_pkt1.encoded_pkts.append(header1)
 
-        header2 = COPE_classes.EncodedHeader(pkt_id=2, nexthop=hw_dest2)
-        cope_pkt2 = COPE_classes.COPE_packet()
+        header2 = cope.EncodedHeader(pkt_id=2, nexthop_s=hw_dest2)
+        cope_pkt2 = cope.COPE_packet()
         cope_pkt2.encoded_pkts.append(header2)
 
-        header3 = COPE_classes.EncodedHeader(pkt_id=3, nexthop=hw_dest3)
-        cope_pkt3 = COPE_classes.COPE_packet()
+        header3 = cope.EncodedHeader(pkt_id=3, nexthop_s=hw_dest3)
+        cope_pkt3 = cope.COPE_packet()
         cope_pkt3.encoded_pkts.append(header3)
 
         # Set up neighbours so that they have already received other neighbour's missing packets
@@ -193,7 +196,7 @@ class TestEncoder(unittest.TestCase):
 
     def test_findcodables_missing2(self):
         sharedState = nc_shared_state.SharedState()
-        mockAddAcksRecps = mock.Mock()
+        mockAddAcksRecps = Mock()
         encoder = nc_encoder.Encoder(sharedState, mockAddAcksRecps)
 
         # Create three different packets, meant for 3 destinations. Packets can only be coded together if each
@@ -201,16 +204,16 @@ class TestEncoder(unittest.TestCase):
         hw_dest1 = "00:00:00:00:00:01"
         hw_dest2 = "00:00:00:00:00:02"
         hw_dest3 = "00:00:00:00:00:03"
-        header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
-        cope_pkt1 = COPE_classes.COPE_packet()
+        header1 = cope.EncodedHeader(pkt_id=1, nexthop_s=hw_dest1)
+        cope_pkt1 = cope.COPE_packet()
         cope_pkt1.encoded_pkts.append(header1)
 
-        header2 = COPE_classes.EncodedHeader(pkt_id=2, nexthop=hw_dest2)
-        cope_pkt2 = COPE_classes.COPE_packet()
+        header2 = cope.EncodedHeader(pkt_id=2, nexthop_s=hw_dest2)
+        cope_pkt2 = cope.COPE_packet()
         cope_pkt2.encoded_pkts.append(header2)
 
-        header3 = COPE_classes.EncodedHeader(pkt_id=3, nexthop=hw_dest3)
-        cope_pkt3 = COPE_classes.COPE_packet()
+        header3 = cope.EncodedHeader(pkt_id=3, nexthop_s=hw_dest3)
+        cope_pkt3 = cope.COPE_packet()
         cope_pkt3.encoded_pkts.append(header3)
 
 
@@ -235,7 +238,7 @@ class TestEncoder(unittest.TestCase):
 
     def test_findcodables_missing3(self):
         sharedState = nc_shared_state.SharedState()
-        mockAddAcksRecps = mock.Mock()
+        mockAddAcksRecps = Mock()
         encoder = nc_encoder.Encoder(sharedState, mockAddAcksRecps)
 
         # Create three different packets, meant for 3 destinations. Packets can only be coded together if each
@@ -243,16 +246,16 @@ class TestEncoder(unittest.TestCase):
         hw_dest1 = "00:00:00:00:00:01"
         hw_dest2 = "00:00:00:00:00:02"
         hw_dest3 = "00:00:00:00:00:03"
-        header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
-        cope_pkt1 = COPE_classes.COPE_packet()
+        header1 = cope.EncodedHeader(pkt_id=1, nexthop_s=hw_dest1)
+        cope_pkt1 = cope.COPE_packet()
         cope_pkt1.encoded_pkts.append(header1)
 
-        header2 = COPE_classes.EncodedHeader(pkt_id=2, nexthop=hw_dest2)
-        cope_pkt2 = COPE_classes.COPE_packet()
+        header2 = cope.EncodedHeader(pkt_id=2, nexthop_s=hw_dest2)
+        cope_pkt2 = cope.COPE_packet()
         cope_pkt2.encoded_pkts.append(header2)
 
-        header3 = COPE_classes.EncodedHeader(pkt_id=3, nexthop=hw_dest3)
-        cope_pkt3 = COPE_classes.COPE_packet()
+        header3 = cope.EncodedHeader(pkt_id=3, nexthop_s=hw_dest3)
+        cope_pkt3 = cope.COPE_packet()
         cope_pkt3.encoded_pkts.append(header3)
 
 

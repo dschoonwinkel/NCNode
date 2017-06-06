@@ -1,8 +1,8 @@
 import logging
 import logging.config
 import coding_utils
-import scapy.all as scapy
-import COPE_packet_classes as COPE_classes
+from pypacker.layer12 import cope
+# import COPE_packet_classes as COPE_classes
 
 
 class Encoder(object):
@@ -23,7 +23,7 @@ class Encoder(object):
         #self.#logger.debug("Encoded num %d" %len(pkt.encoded_pkts))
 
         if len(pkt.encoded_pkts) >= 1:                                                      # TODO 2.65
-            packet_queues_ready = self.sharedState.getOutputQueueReady(first_addr=pkt.encoded_pkts[0].nexthop)      #TODO 6.5 us
+            packet_queues_ready = self.sharedState.getOutputQueueReady(first_addr=pkt.encoded_pkts[0].nexthop_s)      #TODO 6.5 us
         else:
             packet_queues_ready = self.sharedState.getOutputQueueReady()                    #TODO 860 ns
 
@@ -45,8 +45,8 @@ class Encoder(object):
             valid_codables, rest_pkts = self.findCodables(cope_pkts)
 
             # Create a new encoded packet, starting with original packet
-            coded_pkt = COPE_classes.COPE_packet()
-            coded_payload = ""
+            coded_pkt = cope.COPE_packet()
+            coded_payload = b''
 
             #self.#logger.debug("Len of valid_codables %d" % len(valid_codables))
 
@@ -55,15 +55,15 @@ class Encoder(object):
                 # Encode additional packet together, if they are decodable at the receiver
                 for cope_pkt in valid_codables:
                     coded_pkt.encoded_pkts.append(cope_pkt.encoded_pkts[0])
-                    coded_payload = coding_utils.strxor(coded_payload, str(cope_pkt.payload))
+                    coded_payload = coding_utils.bytexor(coded_payload, cope_pkt.body_bytes)
 
             # If the packet cannot be coded with any other packet
             else:
                 coded_pkt.encoded_pkts.append(pkt.encoded_pkts[0])
-                coded_payload = str(pkt.payload)
+                coded_payload = pkt.body_bytes
 
             # #logger.debug(Output queue", output_queue
-            coded_pkt.payload = scapy.Raw(coded_payload)
+            coded_pkt.body_bytes = coded_payload
 
             self.addACksRecps.addACKsRecps(coded_pkt)
 
@@ -78,17 +78,17 @@ class Encoder(object):
 
         # For each packet header a
         for neighbour_a in cope_pkts_list:
-            possiblities_sets[neighbour_a.encoded_pkts[0].nexthop] = set()
+            possiblities_sets[neighbour_a.encoded_pkts[0].nexthop_s] = set()
             # Add packet a, which we want to decode
-            possiblities_sets[neighbour_a.encoded_pkts[0].nexthop].add(neighbour_a)
+            possiblities_sets[neighbour_a.encoded_pkts[0].nexthop_s].add(neighbour_a)
 
             # For each other packet header b
             for cope_pkt_b in cope_pkts_list:
                 # Does a.neighbour.recvset not contain b.pkt_id
-                if self.sharedState.hasNeighbourReceived(neighbour_a.encoded_pkts[0].nexthop,
+                if self.sharedState.hasNeighbourReceived(neighbour_a.encoded_pkts[0].nexthop_s,
                                                              cope_pkt_b.encoded_pkts[0].pkt_id):
                     # If so, add to possibilities set for a
-                    possiblities_sets[neighbour_a.encoded_pkts[0].nexthop].add(cope_pkt_b)
+                    possiblities_sets[neighbour_a.encoded_pkts[0].nexthop_s].add(cope_pkt_b)
 
         # for key in possiblities_sets.keys():
         #     print "\n\n\n\n\n\n neighbour %s" % key

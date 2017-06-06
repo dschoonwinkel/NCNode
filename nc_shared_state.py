@@ -6,6 +6,7 @@ import nc_scheduler
 import network_utils
 import nc_netsetup
 from pypacker.layer12 import COPE_packet
+from pypacker.layer3 import ip
 
 class SharedState(object):
 
@@ -373,54 +374,53 @@ class SharedState(object):
 
 
     def scheduleReceipts(self, cope_pkt):
-        raise Exception("scheduleReceipts not implemented yet")
         receipt_header = COPE_packet.ReportHeader()
-        #
-        # ip_pkt = network_utils.check_IPPacket(cope_pkt.payload)           # TODO 800 us
-        #
-        # # If the payload does not contain an IP packet, receipt reports can not be scheduled
-        # if ip_pkt:
-        #     # TODO: BEWARE!! This assumes that ip ID field are set up beforehand to be sequential. Could change
-        #     # as the packet moves across the network, but should be fine for subnets
-        #     src_ip = ip_pkt.src
-        #     ip_seq_no = ip_pkt.id
-        #     receipt_header.src_ip = src_ip
-        #     receipt_header.last_pkt = ip_seq_no
-        #
-        #     #self.#logger.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
-        #
-        #     bit_map = 0
-        #     if ip_pkt.src in self.receipts_history:
-        #         bit_map = self.receipts_history[src_ip]
-        #     else:
-        #         bit_map = 0
-        #
-        #     # Shift the old bitmap completely out of the map by default
-        #     seq_no_difference = 8
-        #
-        #     # Find the correct seqno distance, if not default
-        #     for report in reversed(self.receipts_queue):
-        #         if report.src_ip == src_ip:
-        #             seq_no_difference = ip_seq_no - report.last_pkt
-        #             break
-        #
-        #     # This happens when a resent packet arrives after the next packet in the stream
-        #     if seq_no_difference < 0:
-        #         # If still within the byte, add the report to the ack_history, but do nothing else
-        #         if seq_no_difference >= -7:
-        #             #self.#logger.debug("Adding ack to ack_history")
-        #             bit_map = (bit_map | (1 << -seq_no_difference)) & 255
-        #         # Else: Simply discard the report, it is probably stale anyway
-        #         else:
-        #             return
-        #     else:
-        #         # Shift the ackmap by the difference in seq_no
-        #         bit_map = (bit_map << seq_no_difference | 1) & 255
-        #
-        #     self.receipts_history[src_ip] = bit_map
-        #     receipt_header.bit_map = bit_map
-        #
-        #     self.receipts_queue.append(receipt_header)
+
+        ip_pkt = cope_pkt[ip.IP]           # TODO 800 us
+
+        # If the payload does not contain an IP packet, receipt reports can not be scheduled
+        if ip_pkt:
+            # TODO: BEWARE!! This assumes that ip ID field are set up beforehand to be sequential. Could change
+            # as the packet moves across the network, but should be fine for subnets
+            src_ip = ip_pkt.src
+            ip_seq_no = ip_pkt.id
+            receipt_header.src_ip = src_ip
+            receipt_header.last_pkt = ip_seq_no
+
+            #self.#logger.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
+
+            bit_map = 0
+            if ip_pkt.src in self.receipts_history:
+                bit_map = self.receipts_history[src_ip]
+            else:
+                bit_map = 0
+
+            # Shift the old bitmap completely out of the map by default
+            seq_no_difference = 8
+
+            # Find the correct seqno distance, if not default
+            for report in reversed(self.receipts_queue):
+                if report.src_ip == src_ip:
+                    seq_no_difference = ip_seq_no - report.last_pkt
+                    break
+
+            # This happens when a resent packet arrives after the next packet in the stream
+            if seq_no_difference < 0:
+                # If still within the byte, add the report to the ack_history, but do nothing else
+                if seq_no_difference >= -7:
+                    #self.#logger.debug("Adding ack to ack_history")
+                    bit_map = (bit_map | (1 << -seq_no_difference)) & 255
+                # Else: Simply discard the report, it is probably stale anyway
+                else:
+                    return
+            else:
+                # Shift the ackmap by the difference in seq_no
+                bit_map = (bit_map << seq_no_difference | 1) & 255
+
+            self.receipts_history[src_ip] = bit_map
+            receipt_header.bit_map = bit_map
+
+            self.receipts_queue.append(receipt_header)
 
     def stopWaiters(self):
         self.run_event.clear()

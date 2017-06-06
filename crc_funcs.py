@@ -27,6 +27,7 @@ def test_crchash():
 
 
 def crc_checksum(msg):
+    msg = msg.encode('ascii')
     # Ignore last two bytes, i.e. checksum field
     # coding_utils.print_hex("\n\n #############################Checksum computation values: ", msg[:-2])
     return crc16(msg[:-2])

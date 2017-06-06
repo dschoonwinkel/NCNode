@@ -1,9 +1,8 @@
 import logging
-# logging.basicConfig(level=logging.DEBUG)
-import scapy.all as scapy
-import COPE_packet_classes as COPE_classes
+logging.basicConfig(level=logging.DEBUG)
 import logging.config
 import crc_funcs
+from pypacker.layer12 import cope, ethernet
 import time
 
 
@@ -31,12 +30,12 @@ class Transmitter(object):
 			# Do packet encapsulation here...
 			# #self.#logger.debug("my hw addr: %s" % self.sharedState.get_my_hw_addr())
 			if len(pkt.encoded_pkts) == 0:
-				encap_pkt = scapy.Ether(src=self.sharedState.get_my_hw_addr(), dst=self.broadcast_HWAddr, type=COPE_classes.COPE_PACKET_TYPE)/pkt
+				encap_pkt = ethernet.Ethernet(src_s=self.sharedState.get_my_hw_addr(), dst_s=self.broadcast_HWAddr, type=cope.COPE_PACKET_TYPE)+pkt
 			elif len(pkt.encoded_pkts) == 1:
-				encap_pkt = scapy.Ether(src=self.sharedState.get_my_hw_addr(), dst=pkt.encoded_pkts[0].nexthop, type=COPE_classes.COPE_PACKET_TYPE)/pkt
+				encap_pkt = ethernet.Ethernet(src_s=self.sharedState.get_my_hw_addr(), dst_s=pkt.encoded_pkts[0].nexthop_s, type=cope.COPE_PACKET_TYPE)+pkt
 				self.sharedState.incrementPktsSent(encoded = False)
 			elif len(pkt.encoded_pkts) > 1:
-				encap_pkt = scapy.Ether(src=self.sharedState.get_my_hw_addr(), dst=self.broadcast_HWAddr, type=COPE_classes.COPE_PACKET_TYPE)/pkt
+				encap_pkt = ethernet.Ethernet(src_s=self.sharedState.get_my_hw_addr(), dst_s=self.broadcast_HWAddr, type=cope.COPE_PACKET_TYPE)+pkt
 				self.sharedState.incrementPktsSent(encoded = True)
 			else:
 				#self.#logger.error("Impossible ENCODED_NUM, stopping transmit")

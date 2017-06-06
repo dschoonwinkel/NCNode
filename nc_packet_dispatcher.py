@@ -1,7 +1,7 @@
 import logging
 import logging.config
-import COPE_packet_classes as COPE_classes
 import time
+from pypacker.layer12 import cope
 
 class PacketDispatcher(object):
 
@@ -31,5 +31,5 @@ class PacketDispatcher(object):
             self.dispatch()
 
         else:
-            cope_pkt = COPE_classes.COPE_packet()
+            cope_pkt = cope.COPE_packet()
             self.encoder.encode(cope_pkt)

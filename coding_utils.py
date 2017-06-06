@@ -1,11 +1,10 @@
-from scapy.all import *
-import COPE_packet_classes as COPE_classes
 # import calculate_checksum
 # from crc_checksum import *
 import crc_funcs
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
+import numpy as np
 #logger =logging.getLogger('codingUtils')
 
 
@@ -14,7 +13,7 @@ def print_hex(title, payload):
         hextext = title + ' '.join('%02X' % ord(x) for x in str(payload))
         return hextext
     elif type(payload) == bytes:
-        hextext = title + ' '.join('%02X' % x for x in str(payload))
+        hextext = title + ' '.join('%02X' % x for x in payload)
         return hextext
     else:
         raise Exception("Incompatible type")
@@ -22,32 +21,32 @@ def print_hex(title, payload):
 
 
 
-def extr_COPE_pkt(payload_bytes):
-    cope_pkt = COPE_classes.COPE_packet(payload_bytes)
-    raw_payload = None
-
-    # cope_pkt.show2()
-    # #logger.debug(len of cope_pkt.payload", len(cope_pkt.payload)
-    # print_hex("Received cope packet", str(cope_pkt))
-    # print_hex("Without payload     ", payload_bytes[:-len(cope_pkt.payload)])
-
-    # #logger.debug(Checksum is correct: ", crc_funcs.crc_checksum(payload_bytes[:-len(cope_pkt.payload)]) == cope_pkt.checksum
-    # #logger.debug(Checksum value: " , crc_funcs.crc_checksum(payload_bytes[:-len(cope_pkt.payload)])
-
-    # Check if valid COPE packet, i.e. valid header checksum
-    # If the payload length is 0, take the checksum of only the COPE packet header 
-    if len(cope_pkt.payload) == 0 and crc_funcs.crc_checksum(payload_bytes) == cope_pkt.checksum:
-        raw_payload = None
-        return cope_pkt, raw_payload
-
-    # Do a checksum of the header, i.e. all bytes without the payload bytes
-    elif crc_funcs.crc_checksum(payload_bytes[:-len(cope_pkt.payload)]) != cope_pkt.checksum:
-        logging.debug("I don't think it is a COPE_packet")
-        return None, None
-
-    # If it is a valid COPE packet and has a payload
-    raw_payload = str(cope_pkt.payload)
-    return cope_pkt, raw_payload
+# def extr_COPE_pkt(payload_bytes):
+#     cope_pkt = COPE_classes.COPE_packet(payload_bytes)
+#     raw_payload = None
+#
+#     # cope_pkt.show2()
+#     # #logger.debug(len of cope_pkt.payload", len(cope_pkt.payload)
+#     # print_hex("Received cope packet", str(cope_pkt))
+#     # print_hex("Without payload     ", payload_bytes[:-len(cope_pkt.payload)])
+#
+#     # #logger.debug(Checksum is correct: ", crc_funcs.crc_checksum(payload_bytes[:-len(cope_pkt.payload)]) == cope_pkt.checksum
+#     # #logger.debug(Checksum value: " , crc_funcs.crc_checksum(payload_bytes[:-len(cope_pkt.payload)])
+#
+#     # Check if valid COPE packet, i.e. valid header checksum
+#     # If the payload length is 0, take the checksum of only the COPE packet header
+#     if len(cope_pkt.payload) == 0 and crc_funcs.crc_checksum(payload_bytes) == cope_pkt.checksum:
+#         raw_payload = None
+#         return cope_pkt, raw_payload
+#
+#     # Do a checksum of the header, i.e. all bytes without the payload bytes
+#     elif crc_funcs.crc_checksum(payload_bytes[:-len(cope_pkt.payload)]) != cope_pkt.checksum:
+#         logging.debug("I don't think it is a COPE_packet")
+#         return None, None
+#
+#     # If it is a valid COPE packet and has a payload
+#     raw_payload = str(cope_pkt.payload)
+#     return cope_pkt, raw_payload
 
 
 def COPE_to_str(cope_pkt):
@@ -76,13 +75,14 @@ def strxor(s0, s1):
     return ''.join(l)
 
 def bytexor(b0, b1):
-    result_bytes = [a ^ b for a, b in zip(b0, b1)]
-    print(result_bytes)
+
+    b0 = bytearray(b0)
+    b1 = bytearray(b1)
 
     if len(b0) > len(b1):
-        result_bytes.append(b0[len(b1):])
-    if len(b1) > len(b0):
-        result_bytes.append(b1[len(b0):])
+        b1 = b1 + b'\0' * (len(b0) - len(b1))
+    elif len(b1) > len(b0):
+        b0 = b0 + b'\0' * (len(b1) - len(b0))
 
-    return result_bytes
+    return bytearray(np.bitwise_xor(b0, b1))
     # return ''.join(l)

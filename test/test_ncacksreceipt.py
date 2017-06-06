@@ -1,8 +1,6 @@
 import unittest
 import nc_shared_state
 import COPE_packet_classes as COPE_classes
-import scapy.all as scapy
-import coding_utils
 import nc_acks_receipts
 import mock
 import time

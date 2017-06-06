@@ -1,12 +1,12 @@
-from scapy.all import *
 import threading
 import time
 from nc_shared_state import SharedState
-import COPE_packet_classes as COPE_classes
+from pypacker.layer12 import ethernet, cope
+import socket
 import logging
 import coding_utils
 # logging.basicConfig(format="%(asctime)-15s: %(message)s", level=logging.DEBUG)
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 pkt_count = 0
 
 # If the nc_netw_listener is running on client, not switch,
@@ -17,6 +17,7 @@ class NetworkListenerHelper(threading.Thread):
         self.sharedState = sharedState
         self.listener = listener
         self.daemon = True
+        # self.logger = logging.getLogger('nc_node.test_ncencoder')
 
     def run(self):
         global pkt_count
@@ -24,7 +25,7 @@ class NetworkListenerHelper(threading.Thread):
         try: 
             listener_socket = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(0x003))
             self.sharedState.setNetworkSocket(listener_socket)        # If successful, save the network socket to sharedState
-            logging.debug("Starting networkInstance thread")
+            # self.logger.debug("Starting networkInstance thread")
 
             while self.sharedState.run_event.is_set():
                 packet = listener_socket.recvfrom(65565)
@@ -32,24 +33,26 @@ class NetworkListenerHelper(threading.Thread):
 
                 # Get packet from tuple
                 packet = packet[0]
-                # print_hex("Raw packet", packet)
+                # print(coding_utils.print_hex("Raw packet", packet))
 
-                scapy_pkt = Ether(packet)
-                if scapy_pkt.type == COPE_classes.COPE_PACKET_TYPE and scapy_pkt.src != self.sharedState.get_my_hw_addr():
-                    logging.debug("COPE packet received" )
-                    self.listener.receivePkt(scapy_pkt)
+                ether_pkt = ethernet.Ethernet(packet)  # TODO: Consider revising, using only bytes to filter
+
+
+                if ether_pkt.type == cope.COPE_PACKET_TYPE and ether_pkt.src_s != self.sharedState.get_my_hw_addr():
+                    # self.logger.debug("COPE packet received" )
+                    self.listener.receivePkt(ether_pkt)
                     # logging.debug("Packet count %d" % pkt_count)
                     pass
 
-            logging.debug("Stopping listener networkInstance graciously")
+            # self.logger.debug("Stopping listener networkInstance graciously")
             if listener_socket:
                 listener_socket.close()
                 self.sharedState.setNetworkSocket(None)
 
 
 
-        except socket.error, msg:
-            logging.error('Socket could not be created. Error Code: ' + str(msg[0]) + ' Message ' + msg[1])
+        except socket.error as msg:
+            # self.logger.error('Socket could not be created. Error Code: ' + str(msg[0]) + ' Message ' + msg[1])
             if listener_socket:
                 listener_socket.close()
                 self.sharedState.setNetworkSocket(None)
@@ -71,10 +74,11 @@ class NetworkListener(object):
             self.sharedState.setRunEvent()
             self.networkInstance.start()
 
-    def receivePkt(self, scapy_packet):
+    def receivePkt(self, ether_pkt):
         logging.debug('Received packet from networkInstance')
-        cope_pkt, cope_payload = coding_utils.extr_COPE_pkt(str(scapy_packet.payload))
-        from_neighbour = scapy_packet.src
+
+        cope_pkt = ether_pkt[cope.COPE_packet]
+        from_neighbour = ether_pkt.src_s
 
         # Check if overheard locally
         if from_neighbour == self.sharedState.get_my_hw_addr():

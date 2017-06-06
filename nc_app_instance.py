@@ -1,7 +1,6 @@
 import logging
 import logging.config
 import scapy.all as scapy
-import COPE_packet_classes as COPE_classes
 import socket
 import network_utils
 import coding_utils

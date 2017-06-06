@@ -4,10 +4,8 @@ import logging.config
 from nc_shared_state import SharedState
 from nc_enqueuer import Enqueuer
 from nc_stream_orderer import StreamOrderer
-import scapy.all as scapy
 import crc_funcs
 import coding_utils
-import COPE_packet_classes as COPE_classes
 
 debug = True
 

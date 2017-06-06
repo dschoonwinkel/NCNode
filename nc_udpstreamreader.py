@@ -1,4 +1,3 @@
-import scapy.all as scapy
 import socket
 import threading
 import logging
@@ -7,11 +6,9 @@ import nc_shared_state
 import nc_encapsulator
 import nc_enqueuer
 import nc_stream_orderer
-import coding_utils
 import time
 import pickle
 import network_utils
-import udpreader
 
 class UDPPortToIP(object):
 
