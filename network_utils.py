@@ -68,57 +68,6 @@ def get_HWAddr(ifacename):
     return None
 
 
-# def check_IPPacket(message_bytes):
-#     # Check minimum IP header size
-#     ip_pkt = None
-#     message_bytes = str(message_bytes)                                                      # TODO 200 ns
-#     # #logger.debug(coding_utils.print_hex("Checking for IP packet", message_bytes))
-#     if len(message_bytes) >= 20:                                                            # TODO 200 ns
-#         # #logger.debug("Possible IP packet")
-#         ip_pkt = ip.IP(message_bytes)                                                    # TODO 300 us
-#
-#         payload_len = len(ip_pkt.payload)                                                   # TODO 1.5 us
-#         # #logger.debug("total_pkt_len", len(message_bytes))
-#         # #logger.debug("header len", (len(message_bytes) - payload_len))
-#         # #logger.debug("payload len", payload_len)
-#         # #logger.debug("Checksum", scapy.utils.checksum(message_bytes[:-payload_len]))
-#
-#         # If zero payload len is not treated correctly, entire packet is removed in substring error
-#         if payload_len == 0:
-#             if scapy.utils.checksum(message_bytes) == 0:
-#                 return ip_pkt
-#
-#         if scapy.utils.checksum(message_bytes[:-payload_len]) == 0:
-#             # #logger.debug("Checksum correct")
-#             return ip_pkt
-#
-#     return None
-#
-# def dissectCOPE_pkt(ether_pkt):
-#     cope_pkt = None
-#     ip_pkt = None
-#     raw_data = None
-#     # It is not a cope packet
-#     if ether_pkt.type != 0x7123:
-#         return cope_pkt, ip_pkt, raw_data
-#
-#     cope_pkt, raw_ip = coding_utils.extr_COPE_pkt(str(ether_pkt.payload))
-#     if not cope_pkt:
-#         #logger.error("COPE packet was None")
-#         return cope_pkt, ip_pkt, raw_data
-#
-#     ip_pkt = check_IPPacket(str(cope_pkt.payload))
-#
-#     if not ip_pkt:
-#         #logger.error("IP packet was None")
-#         return cope_pkt, ip_pkt, raw_data
-#
-#     raw_data = str(ip_pkt[scapy.Raw])
-#
-#     return cope_pkt, ip_pkt, raw_data
-
-
-
 def ipToListenerPort(ip_addr):
     ip_addr = str(ip_addr)
     port_str = re.sub('[.]', '', ip_addr)

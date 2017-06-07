@@ -1,7 +1,6 @@
 import unittest
 import nc_shared_state
 import COPE_packet_classes as COPE_classes
-import scapy.all as scapy
 from pypacker.layer12 import cope
 from pypacker.layer3 import ip
 import crc_funcs
@@ -79,24 +78,24 @@ class TestSharedState(unittest.TestCase):
         # sharedState.receipts_queue[-1].show2()
         self.assertEqual(sharedState.receipts_queue[-1].bit_map, 27)
 
-    def test_updateRecpReports(self):
-        sharedState = nc_shared_state.SharedState()
-        report = COPE_classes.ReportHeader()
-
-        src_ip = "10.0.0.1"
-        report.src_ip = src_ip
-        report.last_pkt = 10
-        report.bit_map = 138
-
-        sharedState.updateRecpReports(report)
-
-        self.assertFalse(11 in sharedState.neighbour_recp_rep["10.0.0.1"], '11 should not be in set')
-        self.assertFalse(3 in sharedState.neighbour_recp_rep["10.0.0.1"], '3')
-        self.assertFalse(7 in sharedState.neighbour_recp_rep["10.0.0.1"], '7')
-        self.assertTrue(10 in sharedState.neighbour_recp_rep["10.0.0.1"], '10')
-        self.assertTrue(8 in sharedState.neighbour_recp_rep["10.0.0.1"], '8')
-        self.assertTrue(6 in sharedState.neighbour_recp_rep["10.0.0.1"], '6')
-        self.assertTrue(2 in sharedState.neighbour_recp_rep["10.0.0.1"], '2')
+    # def test_updateRecpReports(self):
+    #     sharedState = nc_shared_state.SharedState()
+    #     report = COPE_classes.ReportHeader()
+    #
+    #     src_ip = "10.0.0.1"
+    #     report.src_ip = src_ip
+    #     report.last_pkt = 10
+    #     report.bit_map = 138
+    #
+    #     sharedState.updateRecpReports(report)
+    #
+    #     self.assertFalse(11 in sharedState.neighbour_recp_rep["10.0.0.1"], '11 should not be in set')
+    #     self.assertFalse(3 in sharedState.neighbour_recp_rep["10.0.0.1"], '3')
+    #     self.assertFalse(7 in sharedState.neighbour_recp_rep["10.0.0.1"], '7')
+    #     self.assertTrue(10 in sharedState.neighbour_recp_rep["10.0.0.1"], '10')
+    #     self.assertTrue(8 in sharedState.neighbour_recp_rep["10.0.0.1"], '8')
+    #     self.assertTrue(6 in sharedState.neighbour_recp_rep["10.0.0.1"], '6')
+    #     self.assertTrue(2 in sharedState.neighbour_recp_rep["10.0.0.1"], '2')
 
     def test_getOutputQueueReady(self):
         sharedState = nc_shared_state.SharedState()

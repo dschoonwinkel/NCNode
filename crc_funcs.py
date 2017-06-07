@@ -27,7 +27,10 @@ def test_crchash():
 
 
 def crc_checksum(msg):
-    msg = msg.encode('ascii')
+    if type(msg) == str:
+        raise Exception("Did not expect string, cast to bytes before calculation")
+
+    # print(msg)
     # Ignore last two bytes, i.e. checksum field
     # coding_utils.print_hex("\n\n #############################Checksum computation values: ", msg[:-2])
     return crc16(msg[:-2])

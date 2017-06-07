@@ -1,8 +1,7 @@
 import unittest
 import nc_shared_state
-# import scapy.all as scapy
 from pypacker.layer12 import cope
-from pypacker.layer3.ip import IP
+from pypacker.layer3 import ip
 import crc_funcs
 import logging
 import logging.config
@@ -60,21 +59,19 @@ class TestSharedState(unittest.TestCase):
         sharedState = nc_shared_state.SharedState()
         neighbour = "00:00:00:01:00:00"
         ip_seq_no = 1
-        cope_pkt = cope.COPE_packet() + IP(id=ip_seq_no, src_s="10.0.0.1")
-        cope_pkt[IP].body_bytes = b"Hello!"
+        cope_pkt = cope.COPE_packet() + ip.IP(id=ip_seq_no, src_s="10.0.0.1")
+        cope_pkt[ip.IP].body_bytes = b"Hello!"
 
         sharedState.scheduleReceipts(cope_pkt)
-        # sharedState.receipts_queue[-1].show2()
         self.assertEqual(sharedState.receipts_queue[-1].bit_map, 1)
-        cope_pkt[IP].id = ip_seq_no + 1
+        cope_pkt[ip.IP].id = ip_seq_no + 1
         sharedState.scheduleReceipts(cope_pkt)
-        # sharedState.receipts_queue[-1].show2()
         self.assertEqual(sharedState.receipts_queue[-1].bit_map, 3)
-        cope_pkt[IP].id = ip_seq_no + 3
+        cope_pkt[ip.IP].id = ip_seq_no + 3
         sharedState.scheduleReceipts(cope_pkt)
         # sharedState.receipts_queue[-1].show2()
         self.assertEqual(sharedState.receipts_queue[-1].bit_map, 13)
-        cope_pkt[IP].id = ip_seq_no + 4
+        cope_pkt[ip.IP].id = ip_seq_no + 4
         sharedState.scheduleReceipts(cope_pkt)
         # sharedState.receipts_queue[-1].show2()
         self.assertEqual(sharedState.receipts_queue[-1].bit_map, 27)
@@ -90,15 +87,15 @@ class TestSharedState(unittest.TestCase):
 
         sharedState.updateRecpReports(report)
 
-        byte_src_ip = socket.inet_aton(src_ip)
+        # byte_src_ip = socket.inet_aton(src_ip)
 
-        self.assertFalse(11 in sharedState.neighbour_recp_rep[byte_src_ip], '11 should not be in set')
-        self.assertFalse(3 in sharedState.neighbour_recp_rep[byte_src_ip], '3')
-        self.assertFalse(7 in sharedState.neighbour_recp_rep[byte_src_ip], '7')
-        self.assertTrue(10 in sharedState.neighbour_recp_rep[byte_src_ip], '10')
-        self.assertTrue(8 in sharedState.neighbour_recp_rep[byte_src_ip], '8')
-        self.assertTrue(6 in sharedState.neighbour_recp_rep[byte_src_ip], '6')
-        self.assertTrue(2 in sharedState.neighbour_recp_rep[byte_src_ip], '2')
+        self.assertFalse(11 in sharedState.neighbour_recp_rep[src_ip], '11 should not be in set')
+        self.assertFalse(3 in sharedState.neighbour_recp_rep[src_ip], '3')
+        self.assertFalse(7 in sharedState.neighbour_recp_rep[src_ip], '7')
+        self.assertTrue(10 in sharedState.neighbour_recp_rep[src_ip], '10')
+        self.assertTrue(8 in sharedState.neighbour_recp_rep[src_ip], '8')
+        self.assertTrue(6 in sharedState.neighbour_recp_rep[src_ip], '6')
+        self.assertTrue(2 in sharedState.neighbour_recp_rep[src_ip], '2')
 
     def test_getOutputQueueReady(self):
         sharedState = nc_shared_state.SharedState()

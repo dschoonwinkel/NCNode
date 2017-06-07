@@ -1,7 +1,7 @@
 import logging
 
 import network_utils
-import coding_utils
+from pypacker.layer3 import ip
 
 
 class Enqueuer(object):
@@ -32,7 +32,7 @@ class Enqueuer(object):
 
         # Steps for putting in stream orderer
         # 1. Check the encoded header, if it is meant for me, pass it to app layer, and stop forwarding
-        if cope_packet.encoded_pkts[0].nexthop == self.sharedState.get_my_hw_addr():        # TODO: 6 us
+        if cope_packet.encoded_pkts[0].nexthop_s == self.sharedState.get_my_hw_addr():        # TODO: 6 us
             #self.#logger.debug("Packet sent to stream orderer")
             self.streamOrderer.order_stream(cope_packet)
             return
@@ -44,19 +44,19 @@ class Enqueuer(object):
             #self.#logger.debug("Forwarding packet")
 
             # Check the IP dst address, if in sharedState dict, will use correct MAC address for forwarding
-            ip_pkt = network_utils.check_IPPacket(str(cope_packet.payload))                     # TODO: 1.5 us
+            ip_pkt = cope_packet[ip.IP]                     # TODO: 1.5 us
 
             # If valid IP pkt, check address
             if ip_pkt:                                                                          # TODO: 77 ns
                 # 	If IP address known to us, i.e. closest neighbour known
-                if ip_pkt.dst in self.sharedState.ip_to_mac:                                    # TODO 5.5 us
-                    dst_hw_addr = self.sharedState.getMACFromIP(ip_pkt.dst)                     # TODO 6.5 us
+                if ip_pkt.dst_s in self.sharedState.ip_to_mac:                                    # TODO 5.5 us
+                    dst_hw_addr = self.sharedState.getMACFromIP(ip_pkt.dst_s)                     # TODO 6.5 us
                     # Update nexthop, so that the next neighbour in the chain will process the packet
-                    cope_packet.encoded_pkts[0].nexthop = dst_hw_addr                           # TODO 12.5 us
+                    cope_packet.encoded_pkts[0].nexthop_s = dst_hw_addr                         # TODO 12.5 us
                     self.sharedState.addPacketToOutputQueue(dst_hw_addr, cope_packet)           # TODO 1.7 us
                     # cope_packet.show2()                                                       # TODO 2.7 ms
                 # If IP address is not know, forward to everyone
                 else:
                     #self.#logger.error("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst)
-                    raise Exception("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst)
+                    raise Exception("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst_s)
                     # self.sharedState.addPacketToOutputQueue(self.broadcast_HWAddr, cope_packet)

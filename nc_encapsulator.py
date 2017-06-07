@@ -32,7 +32,7 @@ class Encapsulator(object):
         # Use broadcast address as "empty" addr field
         #cope_pkt.encoded_pkts = list()                                                      # TODO 14 us
         cope_pkt.encoded_pkts.append(EncodedHeader(pkt_id=pkt_id, nexthop_s=self.broadcast_HWAddr))
-        cope_pkt.local_pkt_seq_no = local_seq_no           # TODO 4.91 us per loop
+        cope_pkt.local_pkt_seq_num = local_seq_no           # TODO 4.91 us per loop
 
         self.sharedState.times["Encapsulator processed"].append(time.time())                # TODO 613 ns
 

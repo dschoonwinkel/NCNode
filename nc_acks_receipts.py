@@ -1,11 +1,11 @@
 import logging
 import logging.config
 import nc_shared_state
-import COPE_packet_classes as COPE_classes
 import threading
 import time
 import nc_transmitter
 import coding_utils
+from pypacker.layer12 import cope
 
 
 class ACKsReceipts(object):
@@ -18,11 +18,6 @@ class ACKsReceipts(object):
 
     def processPkt(self, cope_pkt, from_neighbour):
         #self.#logger.debug("Got packet to process acks")
-        # cope_pkt.show2()
-        # Extract the receipts and acks here
-        # Pass the packet to the decoder
-        # scapy_packet.show2()
-        # cope_pkt.show2()
         
         if cope_pkt:
             for ack in cope_pkt.acks:
@@ -65,15 +60,16 @@ class AddACKsReceipts(object):
         
         # Increment neighbour seq nr here, schedule ack waiters 
         for encoded in pkt.encoded_pkts:
-            self.sharedState.incrementNeighbourSeqnoSent(encoded.nexthop)
+            self.sharedState.incrementNeighbourSeqnoSent(encoded.nexthop_s)
             ackwaiter = ACKWaiter(pkt, self.sharedState, self.transmitter)
             ackwaiter.start()
-            self.sharedState.addACK_waiter(encoded.nexthop, self.sharedState.get_neighbour_seqnr_sent(encoded.nexthop), ackwaiter)
+            self.sharedState.addACK_waiter(encoded.nexthop_s, self.sharedState.get_neighbour_seqnr_sent(encoded.nexthop_s), ackwaiter)
             
         # Local pkt seq no is the seq number of the first neighbour (possibly only) neighbour to which it is sent
         #self.#logger.debug("Encoded NUM %d" % len(pkt.encoded_pkts))
-        if pkt.ENCODED_NUM >= 1:
-            pkt.local_pkt_seq_no = self.sharedState.get_neighbour_seqnr_sent(pkt.encoded_pkts[0].nexthop) 
+
+        if pkt.encoded_num >= 1:
+            pkt.local_pkt_seq_no = self.sharedState.get_neighbour_seqnr_sent(pkt.encoded_pkts[0].nexthop_s)
 
 
         #pkt.show2()
@@ -113,7 +109,7 @@ class ACKWaiter(threading.Thread):
 def main():
     sharedState = nc_shared_state.SharedState()
     transmitter = nc_transmitter.Transmitter(sharedState)
-    pkt = COPE_classes.COPE_packet()
+    pkt = cope.COPE_packet()
     waiter = ACKWaiter(pkt, sharedState, transmitter)
     waiter.start()
     time.sleep(3)

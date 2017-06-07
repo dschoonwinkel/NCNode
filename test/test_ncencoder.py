@@ -1,8 +1,6 @@
 import unittest
 import nc_shared_state
 import nc_encoder
-# import COPE_packet_classes as COPE_classes
-# import scapy.all as scapy
 from pypacker.layer12 import cope
 from pypacker.layer3 import ip
 import coding_utils

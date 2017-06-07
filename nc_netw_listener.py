@@ -1,10 +1,8 @@
 import threading
-import time
 from nc_shared_state import SharedState
 from pypacker.layer12 import ethernet, cope
 import socket
 import logging
-import coding_utils
 # logging.basicConfig(format="%(asctime)-15s: %(message)s", level=logging.DEBUG)
 # logging.basicConfig(level=logging.DEBUG)
 pkt_count = 0

@@ -12,20 +12,6 @@ class TestNetworkUtils(unittest.TestCase):
 		# #logger.debug("ip addr returned %s" % ip_addr)
 		self.assertEqual(ip_addr, "10.0.0.1")
 
-	# def test_checkIPPacket(self):
-	# 	pkt = scapy.IP()/scapy.Raw("Hello!")
-	# 	# pkt.show2()
-	# 	ip_pkt = network_utils.check_IPPacket(str(pkt))
-	# 	# ip_pkt.show2()
-	# 	self.assertEqual(str(pkt), str(ip_pkt), "Incorrect IP packet extracted")
-    #
-    #
-	# def test_checkIPPacket_invalid(self):
-	# 	pkt = scapy.Raw("A"*20)/scapy.Raw("Hello!")
-	# 	# pkt.show2()
-	# 	ip_pkt = network_utils.check_IPPacket(str(pkt))
-	# 	self.assertEqual(None, ip_pkt, "Extracted Ip packet was not null")
-
 	def test_getFirstHWAddr(self):
 		hw_addr = network_utils.get_first_HWAddr()
 		self.assertEqual("00:00:00:00:00:01", hw_addr)

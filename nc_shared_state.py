@@ -142,18 +142,18 @@ class SharedState(object):
         # print(self.ack_waiters.keys())
 
     def updateRecpReports(self, report):
-        if report.src_ip not in self.neighbour_recp_rep:
+        if report.src_ip_s not in self.neighbour_recp_rep:
             # Create reception report set for each neighbour
-            self.neighbour_recp_rep[report.src_ip] = set()
+            self.neighbour_recp_rep[report.src_ip_s] = set()
 
         # Put the last_pkt number into the received reports for that neighbour
-        self.neighbour_recp_rep[report.src_ip].add(report.last_pkt)
+        self.neighbour_recp_rep[report.src_ip_s].add(report.last_pkt)
 
         for i in range(1, 8):
             if (report.bit_map >> i & 1):
                 # print(bin(report.bit_map))
                 # print(i, report.last_pkt - i - 1)
-                self.neighbour_recp_rep[report.src_ip].add(report.last_pkt - i - 1)
+                self.neighbour_recp_rep[report.src_ip_s].add(report.last_pkt - i - 1)
 
     def updateACKwaiters(self, ackreport, neighbour):
         #self.#logger.debug("Ackreport ")
@@ -382,15 +382,15 @@ class SharedState(object):
         if ip_pkt:
             # TODO: BEWARE!! This assumes that ip ID field are set up beforehand to be sequential. Could change
             # as the packet moves across the network, but should be fine for subnets
-            src_ip = ip_pkt.src
+            src_ip = ip_pkt.src_s
             ip_seq_no = ip_pkt.id
-            receipt_header.src_ip = src_ip
+            receipt_header.src_ip_s = src_ip
             receipt_header.last_pkt = ip_seq_no
 
             #self.#logger.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
 
             bit_map = 0
-            if ip_pkt.src in self.receipts_history:
+            if ip_pkt.src_s in self.receipts_history:
                 bit_map = self.receipts_history[src_ip]
             else:
                 bit_map = 0
@@ -400,7 +400,7 @@ class SharedState(object):
 
             # Find the correct seqno distance, if not default
             for report in reversed(self.receipts_queue):
-                if report.src_ip == src_ip:
+                if report.src_ip_s == src_ip:
                     seq_no_difference = ip_seq_no - report.last_pkt
                     break
 

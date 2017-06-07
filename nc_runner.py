@@ -7,14 +7,14 @@ from nc_stream_orderer import StreamOrderer
 from nc_packet_dispatcher import PacketDispatcher
 from nc_encoder import Encoder
 from nc_transmitter import Transmitter
-import COPE_packet_classes as COPE_classes
 from nc_network_instance import NetworkInstanceAdapter
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
 #logger =logging.getLogger('nc_node.ncRunner')
+from pypacker.layer12 import ethernet, cope
+from pypacker.layer3 import ip
 import time
-import scapy.all as scapy
 import crc_funcs
 import network_utils
 
@@ -38,29 +38,28 @@ def test_sender(sharedState):
     networkInstanceAdapter = NetworkInstanceAdapter(network_utils.get_first_NicName())
     sharedState.networkInstance = networkInstanceAdapter
     
-    cope_pkt = COPE_classes.COPE_packet()/scapy.IP()/scapy.Raw("NC Runner test")
+    cope_pkt = cope.COPE_packet() + ip.IP()
+    cope_pkt.highest_layer.body_bytes = b"NC Runner test"
     src_ip = sharedState.get_my_ip_addr()
     pkt_id_str = src_ip + str(1)
     pkt_id = crc_funcs.crc_hash(pkt_id_str)
-    cope_pkt.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop="00:00:00:00:00:02"))
-    cope_pkt.reports.append(COPE_classes.ReportHeader(src_ip='10.0.0.2', last_pkt=90, bit_map=int('00001111', 2)))
+    cope_pkt.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id, nexthop_s="00:00:00:00:00:02"))
+    cope_pkt.reports.append(cope.ReportHeader(src_ip_s='10.0.0.2', last_pkt=90, bit_map=int('00001111', 2)))
     cope_pkt.local_pkt_seq_num = 1
-    cope_pkt.calc_checksum()
     dstMAC = "00:00:00:00:00:01"
-    cope_pkt.build()
     #logger.debug("NC Runner: Encoded num %d" % len(cope_pkt.encoded_pkts))
 
 
     sharedState.addPacketToOutputQueue(dstMAC, cope_pkt)
 
-    cope_pkt = COPE_classes.COPE_packet() / scapy.IP() / scapy.Raw("NC Runner test2")
+    cope_pkt = cope.COPE_packet() + ip.IP()
+    cope_pkt.highest_layer.body_bytes = b"NC Runner test2"
     src_ip = sharedState.get_my_ip_addr()
     pkt_id_str = src_ip + str(2)
     pkt_id = crc_funcs.crc_hash(pkt_id_str)
-    cope_pkt.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop="00:00:00:00:00:02"))
-    cope_pkt.reports.append(COPE_classes.ReportHeader(src_ip='10.0.0.2', last_pkt=91, bit_map=int('00011111', 2)))
+    cope_pkt.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id, nexthop_s="00:00:00:00:00:02"))
+    cope_pkt.reports.append(cope.ReportHeader(src_ip_s='10.0.0.2', last_pkt=91, bit_map=int('00011111', 2)))
     cope_pkt.local_pkt_seq_num = 2
-    cope_pkt.calc_checksum()
     #cope_pkt.show2()
     dstMAC = "00:00:00:00:00:01"
     sharedState.addPacketToOutputQueue(dstMAC, cope_pkt)

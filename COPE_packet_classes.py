@@ -59,9 +59,9 @@ class COPE_packet(Packet):
       # Remember to calculate checksum only of COPE header and not the whole packet
       payload_len = len(self.payload)
       if payload_len != 0:
-        self.checksum = crc_funcs.crc_checksum(str(self)[:-payload_len])
+        self.checksum = crc_funcs.crc_checksum(self.build()[:-payload_len])
       else:
-        self.checksum = crc_funcs.crc_checksum(str(self))
+        self.checksum = crc_funcs.crc_checksum(self.build())
 
     def get_pktid(self, neighbour):
         for encoded_header in self.encoded_pkts:

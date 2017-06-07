@@ -1,9 +1,10 @@
 import logging
 import logging.config
-
-from nc_shared_state import SharedState
-from nc_enqueuer import Enqueuer
-from nc_stream_orderer import StreamOrderer
+from pypacker.layer12 import cope
+from pypacker.layer3 import ip
+import nc_shared_state
+import nc_enqueuer
+import nc_stream_orderer
 import crc_funcs
 import coding_utils
 
@@ -33,7 +34,7 @@ class Decoder(object):
         elif len(cope_pkt.encoded_pkts) == 1:
 
             # Check if I must process it
-            if cope_pkt.encoded_pkts[0].nexthop == self.sharedState.get_my_hw_addr():
+            if cope_pkt.encoded_pkts[0].nexthop_s == self.sharedState.get_my_hw_addr():
 
                 #self.#logger.info("Native packet decoded")
                 # #self.#logger.debug("Uncoded pkt: putting pkt_id in packet_ids_recv set")
@@ -76,7 +77,7 @@ class Decoder(object):
                         return False
 
                 else:
-                    decoded_payload = coding_utils.strxor(decoded_payload, str(self.sharedState.getPacketFromPacketPool(header.pkt_id).payload))
+                    decoded_payload = coding_utils.bytexor(decoded_payload, self.sharedState.getPacketFromPacketPool(header.pkt_id).body_bytes)
                                         
 
             
@@ -85,12 +86,12 @@ class Decoder(object):
             if len(missing_headers) == 1:
                 hex_text = coding_utils.print_hex("Decoded payload", decoded_payload)
                 #self.#logger.debug("Decoded payload: " + hex_text)
-                decoded_native_pkt = COPE_classes.COPE_packet()
+                decoded_native_pkt = cope.COPE_packet()
                 decoded_native_pkt.encoded_pkts.append(missing_headers[0])
                 decoded_pkt_id = decoded_native_pkt.encoded_pkts[0].pkt_id
                 decoded_native_pkt.local_pkt_seq_num = cope_pkt.local_pkt_seq_num
                 decoded_native_pkt.checksum = crc_funcs.crc_checksum(str(decoded_native_pkt))
-                decoded_native_pkt.payload = scapy.Raw(decoded_payload)
+                decoded_native_pkt.body_bytes = decoded_payload
                 
                 # Debug
                 # decoded_native_pkt.show2()
@@ -108,33 +109,33 @@ class Decoder(object):
 def main():
     # Test setup - send one native packet and one encoded packet
 
-    sharedState = SharedState()
-    streamOrderer = StreamOrderer(sharedState)
-    enqueuer = Enqueuer(sharedState, streamOrderer)
+    sharedState = nc_shared_state.SharedState()
+    streamOrderer = nc_stream_orderer.StreamOrderer(sharedState)
+    enqueuer = nc_enqueuer.Enqueuer(sharedState, streamOrderer)
     decoder = Decoder(sharedState, enqueuer)
 
     src_ip1 = "10.0.0.1"
     src_ip2 = "10.0.0.2"
     dst_hwaddr = "00:00:00:00:00:03"
     from_neighbour = "00:00:00:00:00:02"
-    cope_pkt = COPE_classes.COPE_packet()
+    cope_pkt = cope.COPE_packet()
     pkt_id_str = src_ip1+str(1)
     pkt_id1 = crc_funcs.crc_hash(pkt_id_str)
-    cope_pkt.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id1, nexthop=dst_hwaddr))
+    cope_pkt.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id1, nexthop_s=dst_hwaddr))
     cope_pkt.local_pkt_seq_num = 1
     cope_pkt.checksum = crc_funcs.crc_checksum(str(cope_pkt))
-    cope_pkt.payload = scapy.IP() / scapy.Raw("Hello")
+    cope_pkt.body_bytes = ip.IP().bin() + b"Hello"
 
     decoder.decode(cope_pkt, from_neighbour)
 
-    cope_pkt = COPE_classes.COPE_packet()
+    cope_pkt = cope.COPE_packet()
     pkt_id_str = src_ip2+str(2)
     pkt_id2 = crc_funcs.crc_hash(pkt_id_str)
-    cope_pkt.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id1, nexthop=dst_hwaddr))
-    cope_pkt.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id2, nexthop=dst_hwaddr))
+    cope_pkt.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id1, nexthop_s=dst_hwaddr))
+    cope_pkt.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id2, nexthop_s=dst_hwaddr))
     cope_pkt.local_pkt_seq_num = 2
     cope_pkt.checksum = crc_funcs.crc_checksum(str(cope_pkt))
-    cope_pkt.payload = scapy.IP() / scapy.Raw("\x00\x00\x00\x00\x01")
+    cope_pkt.body_bytes = ip.IP().bin() + b"\x00\x00\x00\x00\x01"
 
     decoder.decode(cope_pkt, from_neighbour)
 
