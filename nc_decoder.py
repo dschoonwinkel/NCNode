@@ -9,13 +9,14 @@ import crc_funcs
 import coding_utils
 
 debug = True
+logging.config.fileConfig('logging.conf')
 
 class Decoder(object):
 
     def __init__(self, sharedState, enqueuer):
         self.sharedState = sharedState
         self.enqueuer = enqueuer
-        logging.config.fileConfig('logging.conf')
+
         self.logger =logging.getLogger('nc_node.ncDecoder')
         # #self.#logger.critical("Starting ncDecoderLogger")
 

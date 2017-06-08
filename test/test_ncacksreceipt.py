@@ -17,7 +17,7 @@ class TestACKRecps(unittest.TestCase):
         sharedState = nc_shared_state.SharedState()
         acksRecps = nc_acks_receipts.ACKsReceipts(sharedState, mockDecoder)
         src_HWAddr = sharedState.get_my_hw_addr()
-        neighbourMAC = "000:00:00:00:00:02"
+        neighbourMAC = "00:00:00:00:00:02"
 
         # Set up ACKWaiters
         mockACKWaiter_pkt10 = Mock()

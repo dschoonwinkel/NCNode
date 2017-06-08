@@ -6,14 +6,14 @@ import logging.config
 import COPE_packet_classes as COPE_classes
 import time
 
-
+logging.config.fileConfig('logging.conf')
 
 class Encapsulator(object):
 
     def __init__(self, sharedState, enqueuer):
         self.sharedState = sharedState
         self.enqueuer = enqueuer
-        logging.config.fileConfig('logging.conf')
+
         #self.#logger =logging.getLogger('nc_node.Encapsulator')
         self.broadcast_HWAddr = "ff:ff:ff:ff:ff:ff"
 

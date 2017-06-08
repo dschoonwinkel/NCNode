@@ -2,13 +2,13 @@ import logging
 import time
 import network_utils
 from pypacker.layer3 import ip
-
+logging.config.fileConfig('logging.conf')
 
 class Enqueuer(object):
     def __init__(self, sharedState, streamOrderer):
         self.streamOrderer = streamOrderer
         self.sharedState = sharedState
-        logging.config.fileConfig('logging.conf')
+
         #self.#logger =logging.getLogger('nc_node.ncEnqueuer')
 
     def enqueue(self, cope_packet):

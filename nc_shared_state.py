@@ -9,6 +9,8 @@ from pypacker.layer12 import cope
 from pypacker.layer3 import ip
 import time
 
+logging.config.fileConfig('logging.conf')
+
 class SharedState(object):
 
     def __init__(self):
@@ -28,6 +30,12 @@ class SharedState(object):
         self.times["Enqueuer processed"] = list()
         self.times["AddPacketToOutputQueue processed"] = list()
         self.times["checkDispatch processed"] = list()
+        self.times["Encoder processed"] = list()
+        self.times["AddACKs processed"] = list()
+        self.times["AddACKs processed1"] = list()
+        self.times["AddACKs processed2"] = list()
+        self.times["AddACKs processed3"] = list()
+        self.times["AddACKs processed4"] = list()
 
 
 
@@ -88,7 +96,7 @@ class SharedState(object):
         self.traffic_packets_in = 0
         self.traffic_packets_out = 0
 
-        logging.config.fileConfig('logging.conf')
+
         self.logger =logging.getLogger('nc_node.ncSharedState')
         self.packetDispatcher = None
 

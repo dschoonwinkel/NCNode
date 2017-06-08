@@ -4,14 +4,14 @@ import logging.config
 import crc_funcs
 from pypacker.layer12 import cope, ethernet
 import time
-
+logging.config.fileConfig('logging.conf')
 
 class Transmitter(object):
 
     def __init__(self, sharedState):
         self.sharedState = sharedState
         self.broadcast_HWAddr = "ff:ff:ff:ff:ff:ff"
-        logging.config.fileConfig('logging.conf')
+
         self.logger =logging.getLogger('nc_node.Transmitter')
 
     def transmit(self, pkt):

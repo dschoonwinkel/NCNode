@@ -5,10 +5,10 @@ import network_utils
 import nc_shared_state
 from pypacker.layer12 import cope, ethernet
 from pypacker.layer3 import ip
-
+logging.config.fileConfig('logging.conf')
 class ApplicationInstanceAdapter(object):
     def __init__(self, sharedState):
-        logging.config.fileConfig('logging.conf')
+
         #self.#logger =logging.getLogger('nc_node.ApplicationInstanceAdapter')
         self.sharedState = sharedState
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP

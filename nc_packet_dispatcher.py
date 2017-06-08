@@ -2,13 +2,13 @@ import logging
 import logging.config
 import time
 from pypacker.layer12 import cope
+logging.config.fileConfig('logging.conf')
 
 class PacketDispatcher(object):
 
     def __init__(self, sharedState, encoder):
         self.sharedState = sharedState
         self.encoder = encoder
-        logging.config.fileConfig('logging.conf')
         #self.#logger =logging.getLogger('nc_node.ncPacketDispatcher')
 
     def dispatch(self):

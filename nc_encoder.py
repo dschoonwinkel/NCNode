@@ -2,15 +2,16 @@ import logging
 import logging.config
 import coding_utils
 from pypacker.layer12 import cope
+import time
 # import COPE_packet_classes as COPE_classes
-
+logging.config.fileConfig('logging.conf')
 
 class Encoder(object):
 
     def __init__(self, sharedState, addAckRecps):
         self.sharedState = sharedState
         self.addACksRecps = addAckRecps
-        logging.config.fileConfig('logging.conf')
+
         #self.#logger =logging.getLogger('nc_node.Encoder')
 
     def encode(self, pkt):
@@ -65,10 +66,12 @@ class Encoder(object):
             # #logger.debug(Output queue", output_queue
             coded_pkt.body_bytes = coded_payload
 
+            self.sharedState.times["Encoder processed"].append(time.time())
             self.addACksRecps.addACKsRecps(coded_pkt)
 
         # Else: if output queue is long enough send uncoded immediately
         else:
+            self.sharedState.times["Encoder processed"].append(time.time())
             self.addACksRecps.addACKsRecps(pkt)
 
     def findCodables(self, cope_pkts_list):

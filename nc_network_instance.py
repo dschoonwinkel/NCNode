@@ -3,12 +3,13 @@ import logging.config
 from pypacker import psocket
 from pypacker.layer12 import cope, ethernet
 import network_utils
+logging.config.fileConfig('logging.conf')
 
 class NetworkInstanceAdapter(object):
     
     def __init__(self, iface):
         self.iface = iface
-        logging.config.fileConfig('logging.conf')
+
         self.logger =logging.getLogger('nc_node.NetworkInstanceAdapter')
         self.psock = psocket.SocketHndl(iface_name=iface, mode=psocket.SocketHndl.MODE_LAYER_2)
     

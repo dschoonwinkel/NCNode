@@ -2,6 +2,7 @@ import threading
 import logging
 import logging.config
 import time
+logging.config.fileConfig('logging.conf')
 
 class ControlPktWaiter(threading.Thread):
 
@@ -11,7 +12,7 @@ class ControlPktWaiter(threading.Thread):
         self.stop_event = threading.Event()
         self.startTime = time.time()
         self.daemon = True
-        logging.config.fileConfig('logging.conf')
+
         #self.#logger =logging.getLogger('nc_node.ControlPktWaiter')
 
 

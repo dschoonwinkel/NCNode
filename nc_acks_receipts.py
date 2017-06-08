@@ -6,14 +6,13 @@ import time
 import nc_transmitter
 import coding_utils
 from pypacker.layer12 import cope
-
+logging.config.fileConfig('logging.conf')
 
 class ACKsReceipts(object):
 
     def __init__(self, sharedState, decoder):
         self.sharedState = sharedState
         self.decoder = decoder
-        logging.config.fileConfig('logging.conf')
         #self.#logger =logging.getLogger('nc_node.ACKsReceipts')
 
     def processPkt(self, cope_pkt, from_neighbour):
@@ -33,16 +32,17 @@ class ACKsReceipts(object):
             #self.#logger.error("Could not use COPE packet, probably incorrect packet format")
             pass
 
-
 class AddACKsReceipts(object):
 
     def __init__(self, sharedState, transmitter):
         self.sharedState = sharedState
         self.transmitter = transmitter
-        logging.config.fileConfig('logging.conf')
+
         self.logger =logging.getLogger('nc_node.AddACKsReceipts')
 
     def addACKsRecps(self, pkt):
+
+        self.sharedState.times["AddACKs processed1"].append(time.time())
 
         for i in range(len(self.sharedState.ack_queue)):
             ack = self.sharedState.popACKReport()
@@ -51,20 +51,27 @@ class AddACKsReceipts(object):
             # pkt.acks = list()
             pkt.acks.append(ack)
 
+        self.sharedState.times["AddACKs processed2"].append(time.time())
+
         for i in range(len(self.sharedState.receipts_queue)):
             recp = self.sharedState.popRecpReport()
             #self.#logger.debug("Add pktno %d recp to packet", recp.last_pkt)
             
             # pkt.reports = list()
             pkt.reports.append(recp)
-        
-        # Increment neighbour seq nr here, schedule ack waiters 
-        for encoded in pkt.encoded_pkts:
-            self.sharedState.incrementNeighbourSeqnoSent(encoded.nexthop_s)
-            ackwaiter = ACKWaiter(pkt, self.sharedState, self.transmitter)
-            ackwaiter.start()
-            self.sharedState.addACK_waiter(encoded.nexthop_s, self.sharedState.get_neighbour_seqnr_sent(encoded.nexthop_s), ackwaiter)
 
+        self.sharedState.times["AddACKs processed3"].append(time.time())
+
+        # Increment neighbour seq nr here, schedule ack waiters
+        self.logger.debug(pkt.bin())
+        for encoded in pkt.encoded_pkts:
+            self.sharedState.incrementNeighbourSeqnoSent(encoded.nexthop_s)             # TODO : 7 us
+            ackwaiter = ACKWaiter(pkt, self.sharedState, self.transmitter)              # TODO : 32 us
+            ackwaiter.start()                                                           # TODO : 8 ms
+            self.sharedState.addACK_waiter(encoded.nexthop_s,
+                                           self.sharedState.get_neighbour_seqnr_sent(encoded.nexthop_s), ackwaiter) #TODO 12 us
+
+        self.sharedState.times["AddACKs processed4"].append(time.time())
         # Local pkt seq no is the seq number of the first neighbour (possibly only) neighbour to which it is sent
         #self.#logger.debug("Encoded NUM %d" % len(pkt.encoded_pkts))
 
@@ -74,6 +81,7 @@ class AddACKsReceipts(object):
         #pkt.show2()
         ##self.#logger.critical(coding_utils.print_hex("Raw packet: ", str(pkt)))
 
+        self.sharedState.times["AddACKs processed"].append(time.time())
         self.transmitter.transmit(pkt)
 
     
@@ -86,7 +94,6 @@ class ACKWaiter(threading.Thread):
         self.stop_event = threading.Event()
         self.transmitter = transmitter              # Reference to transmitter is used to reschedule the transmission
         self.daemon = True
-        logging.config.fileConfig('logging.conf')
         #self.#logger =logging.getLogger('nc_node.ACKWaiter')
 
 

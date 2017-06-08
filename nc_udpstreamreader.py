@@ -9,6 +9,7 @@ import nc_stream_orderer
 import time
 import pickle
 import network_utils
+logging.config.fileConfig('logging.conf')
 
 class UDPPortToIP(object):
 
@@ -31,7 +32,6 @@ class UDPStreamHandler(threading.Thread):
         self.listening_addr = "127.0.0.1"
         self.stop_event = threading.Event()
         self.daemon = True
-        logging.config.fileConfig('logging.conf')
         #self.#logger =logging.getLogger('nc_node.UDPStreamHandler')
 
     def run(self):
