@@ -5,8 +5,9 @@ import logging.config
 import nc_scheduler
 import network_utils
 import nc_netsetup
-from pypacker.layer12 import COPE_packet
+from pypacker.layer12 import cope
 from pypacker.layer3 import ip
+import time
 
 class SharedState(object):
 
@@ -24,6 +25,9 @@ class SharedState(object):
         self.times["Packet dispatcher send"] = list()
         self.times["Transmitter send"] = list()
         self.times['Message sent'] = list()
+        self.times["Enqueuer processed"] = list()
+        self.times["AddPacketToOutputQueue processed"] = list()
+        self.times["checkDispatch processed"] = list()
 
 
 
@@ -85,7 +89,7 @@ class SharedState(object):
         self.traffic_packets_out = 0
 
         logging.config.fileConfig('logging.conf')
-        #self.#logger =logging.getLogger('nc_node.ncSharedState')
+        self.logger =logging.getLogger('nc_node.ncSharedState')
         self.packetDispatcher = None
 
         self.ip_to_mac = nc_netsetup.readNetworkLayout()
@@ -235,11 +239,14 @@ class SharedState(object):
         self.output_queue_order.append(dstMAC)
 
         # Start checking if the output buffer length is longer than the min buffer len
+
+        self.times["AddPacketToOutputQueue processed"].append(time.time())
         self.checkPacketDispatch()
 
     # Prod the packet dispatcher to check if it can send packets yet
     def checkPacketDispatch(self):
         if self.packetDispatcher:
+            self.times["checkDispatch processed"].append(time.time())
             self.packetDispatcher.dispatch()
 
 
@@ -265,14 +272,13 @@ class SharedState(object):
         # Queue length check will only be done once a valid COPE packet
         # is received -- consider revising this later
         packet_queues_ready = deque()
-
         # #######################
         # This is not order safe
         # #######################
 
         for key in self.packet_queues.keys():
             # Ensure that only different destinations are coded together
-            if key not in packet_queues_ready and key != first_addr:
+            if key.upper() not in packet_queues_ready and key.upper() != first_addr:
                 packet_queues_ready.append(key)
 
         return packet_queues_ready
@@ -334,8 +340,8 @@ class SharedState(object):
 
     def scheduleACK(self, neighbour, seq_no):
         #self.#logger.debug("scheduling ACK for seq_no %d" % seq_no)
-        ack_header = COPE_packet.ACKHeader()                               #TODO 70 us
-        ack_header.neighbour = neighbour                                    #TODO 8.7 us
+        ack_header = cope.ACKHeader()                               #TODO 70 us
+        ack_header.neighbour_s = neighbour                                    #TODO 8.7 us
         ack_header.last_ack = seq_no                                        #TODO 8.5 us
 
         ackmap = 0
@@ -349,7 +355,7 @@ class SharedState(object):
 
         # Find the correct seqno distance, if not default
         for ack in reversed(self.ack_queue):                               # TODO 1 us, depending on ack_queue size
-            if ack.neighbour == neighbour:                                 # TODO 2.8 us
+            if ack.neighbour_s == neighbour:                                 # TODO 2.8 us
                 seq_no_difference = seq_no - ack.last_ack                  # TODO 2.6 us
                 break
 
@@ -374,7 +380,7 @@ class SharedState(object):
 
 
     def scheduleReceipts(self, cope_pkt):
-        receipt_header = COPE_packet.ReportHeader()
+        receipt_header = cope.ReportHeader()
 
         ip_pkt = cope_pkt[ip.IP]           # TODO 800 us
 

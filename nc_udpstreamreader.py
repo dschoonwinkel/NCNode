@@ -47,7 +47,6 @@ class UDPStreamHandler(threading.Thread):
 
             self.sharedState.times["Streamreader received"].append(time.time())
             self.encapsulator.encapsulate(data, UDPPortToIP.ip_from_udpport(self.listening_port))
-            # self.sharedState.times["Encapsulation, enqueing done"].append(time.time())
 
 def main():
     sharedState = nc_shared_state.SharedState()

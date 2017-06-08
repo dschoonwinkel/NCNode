@@ -12,7 +12,7 @@ def readNetworkLayout():
         split_line = line.split(" ")
         ip = split_line[0]
         mac = split_line[1][:-1]
-        ip_to_mac_table[ip] = mac
+        ip_to_mac_table[ip] = mac.upper()
 
     # logger.debug("IP to MAC table after read %s" % ip_to_mac_table)
 

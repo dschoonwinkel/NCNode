@@ -1,5 +1,5 @@
 import logging
-
+import time
 import network_utils
 from pypacker.layer3 import ip
 
@@ -53,6 +53,7 @@ class Enqueuer(object):
                     dst_hw_addr = self.sharedState.getMACFromIP(ip_pkt.dst_s)                     # TODO 6.5 us
                     # Update nexthop, so that the next neighbour in the chain will process the packet
                     cope_packet.encoded_pkts[0].nexthop_s = dst_hw_addr                         # TODO 12.5 us
+                    self.sharedState.times["Enqueuer processed"].append(time.time())
                     self.sharedState.addPacketToOutputQueue(dst_hw_addr, cope_packet)           # TODO 1.7 us
                     # cope_packet.show2()                                                       # TODO 2.7 ms
                 # If IP address is not know, forward to everyone

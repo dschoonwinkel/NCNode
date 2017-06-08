@@ -141,7 +141,7 @@ def main():
         pass
 
         # print "Times", sharedState.times
-        f = open("exec_times_%s.log" % network_utils.get_first_IPAddr(), 'w')
+        f = open("exec_times_%s.log" % network_utils.get_first_IPAddr(), 'wb')
         pickle.dump(sharedState.times, f)
 
 

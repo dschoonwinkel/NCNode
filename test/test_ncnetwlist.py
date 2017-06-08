@@ -10,6 +10,7 @@ import nc_netw_listener
 import threading
 logging.config.fileConfig('logging.conf')
 import scapy.all as scapy
+import COPE_packet_classes as COPE_classes
 from pypacker.layer12 import ethernet, cope
 from pypacker.layer3 import ip
 import time
@@ -19,12 +20,36 @@ import time
 
 class TestNetwListener(unittest.TestCase):
 
+    def test_netwlisthelper_raiseException(self):
+        # Send helper function
+        def sendPkt():
+            payload = b"\x00" * 100
+            # self.#logger.debug("Sending packet on %s", self.iface)
+            pkt = scapy.Ether(type=cope.COPE_PACKET_TYPE) / COPE_classes.COPE_packet() / payload
+            scapy.sendp(pkt, iface='lo', verbose=0)
+
+
+        sharedState = nc_shared_state.SharedState()
+        mockListener = Mock()
+        netwlistenerhelper = nc_netw_listener.NetworkListenerHelper(sharedState, mockListener)
+        sharedState.setRunEvent()
+        netwlistenerhelper.start()
+
+        send_thread = threading.Thread(target=sendPkt)
+        send_thread.start()
+
+        time.sleep(0.1)
+        sharedState.clearRunEvent()
+
+        self.assertRaises(Exception)
+
     def test_netwlisthelper(self):
         # Send helper function
         def sendPkt():
             payload = b"\x00" * 100
             # self.#logger.debug("Sending packet on %s", self.iface)
-            pkt = scapy.Ether(type=cope.COPE_PACKET_TYPE) / payload
+            pkt = scapy.Ether(type=cope.COPE_PACKET_TYPE) / COPE_classes.COPE_packet() / payload
+            pkt[COPE_classes.COPE_packet].calc_checksum()
             scapy.sendp(pkt, iface='lo', verbose=0)
 
 
@@ -91,6 +116,7 @@ class TestNetwListener(unittest.TestCase):
         netwListener = nc_netw_listener.NetworkListener(sharedState, mockACKs, mockNetwInstance)
 
         pkt = ethernet.Ethernet(type=0x7123, src_s="12:23:34:45:56:67") + cope.COPE_packet() + ip.IP()
+        pkt[cope.COPE_packet].calc_checksum()
 
         # print(pkt)
         netwListener.receivePkt(pkt)

@@ -37,9 +37,9 @@ def main():
     h2.cmd("tcpdump -i lo -s 65535 -w dump_receiver.pcap &")
 
 
-    h1.cmd("xterm -fg black -bg cyan -geometry 80x24+450+0 -e \"python -m cProfile -o h1_profile.txt nc_runner2.py; bash \" &")
+    h1.cmd("xterm -fg black -bg cyan -geometry 80x24+450+0 -e \"python3 -m cProfile -o h1_profile.txt nc_runner2.py; bash \" &")
     # h1.cmd("xterm -fg black -bg cyan -geometry 80x24+450+0 -e \"python nc_runner2_profile.py; bash \" &")
-    h2.cmd("xterm -fg black -bg yellow -geometry 80x24+450+400 -e \"python -m cProfile -o h2_profile.txt nc_runner2.py; bash \" &")
+    h2.cmd("xterm -fg black -bg yellow -geometry 80x24+450+400 -e \"python3 -m cProfile -o h2_profile.txt nc_runner2.py; bash \" &")
     # h2.cmd("xterm -fg black -bg yellow -geometry 80x24+450+400 -e \"python nc_runner2_profile.py; bash \" &")
     h2.cmd("xterm -fg black -bg yellow -geometry 80x24+950+400 -e \"bash ITGRecv.bash; bash\" &")
 

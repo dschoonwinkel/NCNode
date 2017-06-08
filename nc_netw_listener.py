@@ -3,8 +3,7 @@ from nc_shared_state import SharedState
 from pypacker.layer12 import ethernet, cope
 import socket
 import logging
-# logging.basicConfig(format="%(asctime)-15s: %(message)s", level=logging.DEBUG)
-# logging.basicConfig(level=logging.DEBUG)
+import crc_funcs
 pkt_count = 0
 
 # If the nc_netw_listener is running on client, not switch,
@@ -15,7 +14,7 @@ class NetworkListenerHelper(threading.Thread):
         self.sharedState = sharedState
         self.listener = listener
         self.daemon = True
-        # self.logger = logging.getLogger('nc_node.test_ncencoder')
+        self.logger = logging.getLogger('nc_node.NetworkListenerHelper')
 
     def run(self):
         global pkt_count
@@ -38,6 +37,8 @@ class NetworkListenerHelper(threading.Thread):
 
                 if ether_pkt.type == cope.COPE_PACKET_TYPE and ether_pkt.src_s != self.sharedState.get_my_hw_addr():
                     # self.logger.debug("COPE packet received" )
+                    # self.logger.debug(str(ether_pkt))
+                    # self.logger.debug(ether_pkt.bin())
                     self.listener.receivePkt(ether_pkt)
                     # logging.debug("Packet count %d" % pkt_count)
                     pass
@@ -65,6 +66,7 @@ class NetworkListener(object):
         self.networkInstance = networkInstance
         self.sharedState = sharedState
         self.acksReceipts = acksReceipts
+        self.logger = logging.getLogger('nc_node.NetworkListener')
 
         if networkInstance is None:
             # Create networkListenerHelper for listening
@@ -76,6 +78,11 @@ class NetworkListener(object):
         logging.debug('Received packet from networkInstance')
 
         cope_pkt = ether_pkt[cope.COPE_packet]
+        crcchecksum = crc_funcs.crc_checksum(cope_pkt._pack_header())
+        if cope_pkt.checksum != crcchecksum:
+            # self.logger.debug("COPE packet bin() %s" % cope_pkt._pack_header())
+            raise Exception("Invalid checksum for packet %d %d" %(cope_pkt.checksum, crcchecksum))
+
         from_neighbour = ether_pkt.src_s
 
         # Check if overheard locally

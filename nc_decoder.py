@@ -16,10 +16,11 @@ class Decoder(object):
         self.sharedState = sharedState
         self.enqueuer = enqueuer
         logging.config.fileConfig('logging.conf')
-        #self.#logger =logging.getLogger('nc_node.ncDecoder')
+        self.logger =logging.getLogger('nc_node.ncDecoder')
         # #self.#logger.critical("Starting ncDecoderLogger")
 
     def decode(self, cope_pkt, from_neighbour):
+        # self.logger.debug(cope_pkt.bin())
         #self.#logger.debug("Got packet to decode")
         # Decode the COPE packets contained in this packet
         # Schedule ACKs and receipt reports

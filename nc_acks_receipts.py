@@ -40,9 +40,10 @@ class AddACKsReceipts(object):
         self.sharedState = sharedState
         self.transmitter = transmitter
         logging.config.fileConfig('logging.conf')
-        #self.#logger =logging.getLogger('nc_node.AddACKsReceipts')
+        self.logger =logging.getLogger('nc_node.AddACKsReceipts')
 
     def addACKsRecps(self, pkt):
+
         for i in range(len(self.sharedState.ack_queue)):
             ack = self.sharedState.popACKReport()
             #self.#logger.debug("Add pktno %d ack to packet", ack.last_ack)
@@ -55,8 +56,7 @@ class AddACKsReceipts(object):
             #self.#logger.debug("Add pktno %d recp to packet", recp.last_pkt)
             
             # pkt.reports = list()
-            pkt.reports.append(recp)            
-        
+            pkt.reports.append(recp)
         
         # Increment neighbour seq nr here, schedule ack waiters 
         for encoded in pkt.encoded_pkts:
@@ -64,16 +64,16 @@ class AddACKsReceipts(object):
             ackwaiter = ACKWaiter(pkt, self.sharedState, self.transmitter)
             ackwaiter.start()
             self.sharedState.addACK_waiter(encoded.nexthop_s, self.sharedState.get_neighbour_seqnr_sent(encoded.nexthop_s), ackwaiter)
-            
+
         # Local pkt seq no is the seq number of the first neighbour (possibly only) neighbour to which it is sent
         #self.#logger.debug("Encoded NUM %d" % len(pkt.encoded_pkts))
 
         if pkt.encoded_num >= 1:
-            pkt.local_pkt_seq_no = self.sharedState.get_neighbour_seqnr_sent(pkt.encoded_pkts[0].nexthop_s)
-
+            pkt.local_pkt_seq_num = self.sharedState.get_neighbour_seqnr_sent(pkt.encoded_pkts[0].nexthop_s)
 
         #pkt.show2()
         ##self.#logger.critical(coding_utils.print_hex("Raw packet: ", str(pkt)))
+
         self.transmitter.transmit(pkt)
 
     
