@@ -62,7 +62,7 @@ class TestNetwListener(unittest.TestCase):
         send_thread = threading.Thread(target=sendPkt)
         send_thread.start()
 
-        time.sleep(0.1)
+        time.sleep(1)
         sharedState.clearRunEvent()
 
         self.assertTrue(mockListener.receivePkt.called)

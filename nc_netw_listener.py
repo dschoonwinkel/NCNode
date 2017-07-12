@@ -78,10 +78,15 @@ class NetworkListener(object):
         logging.debug('Received packet from networkInstance')
 
         cope_pkt = ether_pkt[cope.COPE_packet]
-        crcchecksum = crc_funcs.crc_checksum(cope_pkt._pack_header())
-        if cope_pkt.checksum != crcchecksum:
-            # self.logger.debug("COPE packet bin() %s" % cope_pkt._pack_header())
-            raise Exception("Invalid checksum for packet %d %d" %(cope_pkt.checksum, crcchecksum))
+        if cope_pkt:
+            crcchecksum = crc_funcs.crc_checksum(cope_pkt._pack_header())
+            if cope_pkt.checksum != crcchecksum:
+                # self.logger.debug("COPE packet bin() %s" % cope_pkt._pack_header())
+                raise Exception("Invalid checksum for packet %d %d" %(cope_pkt.checksum, crcchecksum))
+
+        else:
+            # Packet does not contain a valid COPE packet
+            return
 
         from_neighbour = ether_pkt.src_s
 
