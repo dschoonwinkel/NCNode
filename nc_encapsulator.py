@@ -3,7 +3,7 @@ from pypacker.layer3.ip import IP
 from pypacker.layer4.udp import UDP
 import logging
 import logging.config
-import COPE_packet_classes as COPE_classes
+# import COPE_packet_classes as COPE_classes
 import time
 
 logging.config.fileConfig('logging.conf')

@@ -170,7 +170,7 @@ class SharedState(object):
     def updateACKwaiters(self, ackreport, neighbour):
         #self.#logger.debug("Ackreport ")
 
-        if str(ackreport.neighbour) == str(self.my_hw_addr):
+        if str(ackreport.neighbour_s) == str(self.my_hw_addr):
             #self.#logger.debug("updateACKwaiters running")
             if (neighbour, ackreport.last_ack) in self.ack_waiters:
 

@@ -28,6 +28,8 @@ class TestACKRecps(unittest.TestCase):
         sharedState.addACK_waiter(neighbourMAC, 3, mockACKWaiter_pkt3)
         sharedState.addACK_waiter(neighbourMAC, 2, mockACKWaiter_pkt2)
 
+        # print(sharedState.ack_waiters)
+
         ackcope_pkt = cope.COPE_packet()
 
         # ACKs packet 10, as well as (1100 0000), i.e. packets 2,3
