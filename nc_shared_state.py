@@ -45,10 +45,10 @@ class SharedState(object):
         self.my_hw_addr = network_utils.get_first_HWAddr()
         self.my_nic_name = network_utils.get_first_NicName()
         self.my_ip_addr = network_utils.get_first_IPAddr()
-        self.ack_retries = 0                         # number of retries before ACK waiter thread stops retransmitting
-        self.controlPktTimeout = 0                   # Timeout to wait for before acks and reports are sent as control packets
+        self.ack_retries = 1                         # number of retries before ACK waiter thread stops retransmitting
+        self.controlPktTimeout = 1                   # Timeout to wait for before acks and reports are sent as control packets
         self.min_buffer_len = 1                      # The minimum number of packet to be buffered before transmission starts
-        self.ack_retry_time = 30
+        self.ack_retry_time = 10
         self.mac_to_port = dict()                    # dict(mac_addr, int) -- switch port on which to send out on, i.e. routing
         self.ip_to_mac = dict()                      # dict(IP, mac_addr) -- which MAC addr is closest to this IP, implicitly, which port should it be sent on. Used for routing
         self.ip_to_port = dict()                     # dict(IP, int) -- switch port on which to send out on, i.e. routing
@@ -101,6 +101,8 @@ class SharedState(object):
         self.packetDispatcher = None
 
         self.ip_to_mac = nc_netsetup.readNetworkLayout()
+
+        self.event_loop = None
 
     def get_my_ip_addr(self):
         return self.my_ip_addr
@@ -162,8 +164,8 @@ class SharedState(object):
         self.neighbour_recp_rep[report.src_ip_s].add(report.last_pkt)
 
         for i in range(1, 8):
-            if (report.bit_map >> i & 1):
-                # print(bin(report.bit_map))
+            if (report.bitmap >> i & 1):
+                # print(bin(report.bitmap))
                 # print(i, report.last_pkt - i - 1)
                 self.neighbour_recp_rep[report.src_ip_s].add(report.last_pkt - i - 1)
 
@@ -189,9 +191,9 @@ class SharedState(object):
 
                 
             for i in range(1, 8):
-                if (ackreport.ack_map >> i & 1):
+                if (ackreport.ackmap >> i & 1):
                     # #self.#logger.debug("updateACKwaiters stopping %d" % (ackreport.last_ack - i - 1))
-                    # print(bin(report.ack_map))
+                    # print(bin(report.ackmap))
                     # print(i, report.last_pkt - i - 1)
                     if (neighbour, ackreport.last_ack - i - 1) in self.ack_waiters:
                         # Pop removes and returns reference
@@ -267,7 +269,8 @@ class SharedState(object):
 
     def peekPacketFromQueue(self, queue_key):
         # Look at, but not dequeue the packet at the head of the queue
-        return self.packet_queues[queue_key][0]
+        if len(self.packet_queues[queue_key]) > 0:
+            return self.packet_queues[queue_key][0]
 
     def getPacketFromQueue(self, queue_key):
         # Also remember to dequeue from output queue order here
@@ -381,7 +384,7 @@ class SharedState(object):
             ackmap = (ackmap << seq_no_difference | 1) & 255
 
         self.ack_history[neighbour] = ackmap                              # TODO 220 ns
-        ack_header.ack_map = ackmap                                       # TODO 9 us
+        ack_header.ackmap = ackmap                                       # TODO 9 us
 
         self.ack_queue.append(ack_header)                                 # TODO 270 ns
 
@@ -403,11 +406,11 @@ class SharedState(object):
 
             #self.#logger.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
 
-            bit_map = 0
+            bitmap = 0
             if ip_pkt.src_s in self.receipts_history:
-                bit_map = self.receipts_history[src_ip]
+                bitmap = self.receipts_history[src_ip]
             else:
-                bit_map = 0
+                bitmap = 0
 
             # Shift the old bitmap completely out of the map by default
             seq_no_difference = 8
@@ -423,16 +426,16 @@ class SharedState(object):
                 # If still within the byte, add the report to the ack_history, but do nothing else
                 if seq_no_difference >= -7:
                     #self.#logger.debug("Adding ack to ack_history")
-                    bit_map = (bit_map | (1 << -seq_no_difference)) & 255
+                    bitmap = (bitmap | (1 << -seq_no_difference)) & 255
                 # Else: Simply discard the report, it is probably stale anyway
                 else:
                     return
             else:
                 # Shift the ackmap by the difference in seq_no
-                bit_map = (bit_map << seq_no_difference | 1) & 255
+                bitmap = (bitmap << seq_no_difference | 1) & 255
 
-            self.receipts_history[src_ip] = bit_map
-            receipt_header.bit_map = bit_map
+            self.receipts_history[src_ip] = bitmap
+            receipt_header.bitmap = bitmap
 
             self.receipts_queue.append(receipt_header)
 

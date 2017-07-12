@@ -4,6 +4,7 @@ from pypacker import psocket
 from pypacker.layer12 import cope, ethernet
 import network_utils
 logging.config.fileConfig('logging.conf')
+import coding_utils
 
 class NetworkInstanceAdapter(object):
     
@@ -14,8 +15,13 @@ class NetworkInstanceAdapter(object):
         self.psock = psocket.SocketHndl(iface_name=iface, mode=psocket.SocketHndl.MODE_LAYER_2)
     
     def sendPkt(self, pkt):
-        self.logger.debug("Sending packet on %s" % self.iface)
-        self.psock.send(pkt.bin())
+        # self.logger.debug("Sending packet on %s" % self.iface)
+        try:
+            self.psock.send(pkt.bin())
+        except Exception:
+            print("Something went wrong")
+            print("Len of pkt.bin() %d" %len(pkt.bin()))
+            print(coding_utils.print_hex("pkt.bin()", pkt.bin()))
     
 def main():
     networkInstance = NetworkInstanceAdapter(network_utils.get_first_NicName())

@@ -21,6 +21,7 @@ import nc_encapsulator
 import nc_udpstreamreader
 import nc_app_instance
 import pickle
+import asyncio
 
 packetDispatcher = None
 network_node_list = list(["10.0.0.1", "10.0.0.2"])
@@ -123,6 +124,8 @@ def main():
     setup_NCNode(sharedState)
     # test_receiver(sharedState)
     # setup_sender(sharedState)
+    event_loop = asyncio.get_event_loop()
+    sharedState.event_loop = event_loop
 
     time.sleep(0.5)
 
@@ -130,14 +133,16 @@ def main():
 
     #logger.info("Starting Runner loop \n******************* \n\n\n*******************\n\n\n*******************")
     try:
-        while (1):
-            input()
-            test_sender(sharedState)
+        # while (1):
+        #     input()
+        #     test_sender(sharedState)
+        event_loop.run_forever()
 
 
     except KeyboardInterrupt:
         # logger.info("Closing gracefully")
         print("Closing gracefully")
+        event_loop.close()
         pass
 
         # print "Times", sharedState.times

@@ -26,10 +26,11 @@ class PacketDispatcher(object):
 
     def dispatchControlPkt(self):
         #self.#logger.debug("dispatchControlPkt")
+        # If ACKs and Receipts need to be dispatched
+        if len(self.sharedState.ack_queue) > 0 or len(self.sharedState.receipts_queue) > 0:
+            if len(self.sharedState.output_queue_order) >= self.sharedState.getMinBufferLen():
+                self.dispatch()
 
-        if len(self.sharedState.output_queue_order) >= self.sharedState.getMinBufferLen():
-            self.dispatch()
-
-        else:
-            cope_pkt = cope.COPE_packet()
-            self.encoder.encode(cope_pkt)
+            else: 
+                cope_pkt = cope.COPE_packet()
+                self.encoder.encode(cope_pkt)

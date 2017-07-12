@@ -41,12 +41,14 @@ def main():
     # h1.cmd("xterm -fg black -bg cyan -geometry 80x24+450+0 -e \"python nc_runner2_profile.py; bash \" &")
     h2.cmd("xterm -fg black -bg yellow -geometry 80x24+450+400 -e \"python3 -m cProfile -o h2_profile.txt nc_runner2.py; bash \" &")
     # h2.cmd("xterm -fg black -bg yellow -geometry 80x24+450+400 -e \"python nc_runner2_profile.py; bash \" &")
-    h2.cmd("xterm -fg black -bg yellow -geometry 80x24+950+400 -e \"bash ITGRecv.bash; bash\" &")
+    h2.cmd("xterm -fg black -bg yellow -geometry 80x12+950+400 -e \"bash ITGRecv.bash; bash\" &")
+    h1.cmd("xterm -fg black -bg cyan -geometry 80x12+950+250 -e \"bash ITGRecv.bash; bash\" &")
 
     time.sleep(3)
 
-    h1.cmd("xterm -fg black -bg cyan -geometry 80x24+950+0 -e \"bash ITGSend12.bash; bash\" &")
-    h2.cmd("xterm -fg black -bg yellow -geometry 80x24+0+400 &")
+    h1.cmd("xterm -fg black -bg cyan -geometry 80x12+950+0 -e \"bash ITGSend12.bash; bash\" &")
+    h2.cmd("xterm -fg black -bg yellow -geometry 80x12+950+550 -e \"bash ITGSend21.bash; bash\" &")
+    # h2.cmd("xterm -fg black -bg yellow -geometry 80x24+0+400 &")
 
 
 

@@ -8,6 +8,7 @@ import nc_acks_receipts
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
+import asyncio
 #logger =logging.getLogger('nc_node.test_ncacksreceipt')
 
 
@@ -113,12 +114,27 @@ class TestACKRecps(unittest.TestCase):
     #
     #     mockTransmitter.transmit.assert_called_with(cope_pkt)
 
+    # OLD THREAD BASED APPROACH
+    # def test_ACKWaiter_waitTime(self):
+    #     cope_pkt = cope.COPE_packet()
+    #     sharedState = nc_shared_state.SharedState()
+    #     mockTransmitter = Mock()
+
+    #     ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter)
+    #     ack_waiter.start()
+
+    #     time.sleep(1)
+
+    #     mockTransmitter.transmit.assert_not_called()
+    #     ack_waiter.stopWaiter()
+
     def test_ACKWaiter_waitTime(self):
         cope_pkt = cope.COPE_packet()
         sharedState = nc_shared_state.SharedState()
         mockTransmitter = Mock()
+        event_loop = asyncio.get_event_loop()
 
-        ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter)
+        ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter, event_loop)
         ack_waiter.start()
 
         time.sleep(1)
@@ -126,12 +142,34 @@ class TestACKRecps(unittest.TestCase):
         mockTransmitter.transmit.assert_not_called()
         ack_waiter.stopWaiter()
 
+    def test_ACKWaiter_complete(self):
+
+        async def waiting_task():
+            await asyncio.sleep(2)
+
+        cope_pkt = cope.COPE_packet()
+        sharedState = nc_shared_state.SharedState()
+        sharedState.ack_retries = 2
+        sharedState.ack_retry_time = 0.1
+        mockTransmitter = Mock()
+        event_loop = asyncio.get_event_loop()
+
+        ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter, event_loop)
+        ack_waiter.start()
+
+        event_loop.run_until_complete(waiting_task())
+
+        mockTransmitter.transmit.assert_called()
+        self.assertEqual(mockTransmitter.transmit.call_count, sharedState.ack_retries)
+        ack_waiter.stopWaiter()
+
     def test_ACKWaiter_stop(self):
         cope_pkt = cope.COPE_packet()
         sharedState = nc_shared_state.SharedState()
         mockTransmitter = Mock()
+        event_loop = asyncio.get_event_loop()
 
-        ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter)
+        ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter, event_loop)
         ack_waiter.start()
         ack_waiter.stopWaiter()
 

@@ -49,6 +49,7 @@ class Decoder(object):
                 #     #self.#logger.debug("Overheard locally, do not schedule ACK")
                 #
                 # else:
+                # print("Received packet for me")
                 self.sharedState.scheduleACK(from_neighbour, cope_pkt.local_pkt_seq_num)
 
                 # Let other nodes know that I have received this packet

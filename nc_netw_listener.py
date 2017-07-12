@@ -5,6 +5,7 @@ import socket
 import logging
 import crc_funcs
 pkt_count = 0
+import coding_utils
 
 # If the nc_netw_listener is running on client, not switch,
 # it listens directly from the network
@@ -30,7 +31,6 @@ class NetworkListenerHelper(threading.Thread):
 
                 # Get packet from tuple
                 packet = packet[0]
-                # print(coding_utils.print_hex("Raw packet", packet))
 
                 ether_pkt = ethernet.Ethernet(packet)  # TODO: Consider revising, using only bytes to filter
 
@@ -40,6 +40,7 @@ class NetworkListenerHelper(threading.Thread):
                     # self.logger.debug(str(ether_pkt))
                     # self.logger.debug(ether_pkt.bin())
                     self.listener.receivePkt(ether_pkt)
+                    # print(coding_utils.print_hex("Raw packet", packet))
                     # logging.debug("Packet count %d" % pkt_count)
                     pass
 
@@ -75,9 +76,10 @@ class NetworkListener(object):
             self.networkInstance.start()
 
     def receivePkt(self, ether_pkt):
-        logging.debug('Received packet from networkInstance')
-
+        # logging.debug('Received packet from networkInstance')
+        # print(ether_pkt)
         cope_pkt = ether_pkt[cope.COPE_packet]
+        # print(ether_pkt[cope.COPE_packet])
         if cope_pkt:
             crcchecksum = crc_funcs.crc_checksum(cope_pkt._pack_header())
             if cope_pkt.checksum != crcchecksum:

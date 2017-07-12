@@ -7,6 +7,7 @@ import nc_transmitter
 import coding_utils
 from pypacker.layer12 import cope
 logging.config.fileConfig('logging.conf')
+import asyncio
 
 class ACKsReceipts(object):
 
@@ -63,11 +64,11 @@ class AddACKsReceipts(object):
         self.sharedState.times["AddACKs processed3"].append(time.time())
 
         # Increment neighbour seq nr here, schedule ack waiters
-        self.logger.debug(pkt.bin())
+        # self.logger.debug(pkt.bin())
         for encoded in pkt.encoded_pkts:
             self.sharedState.incrementNeighbourSeqnoSent(encoded.nexthop_s)             # TODO : 7 us
-            ackwaiter = ACKWaiter(pkt, self.sharedState, self.transmitter)              # TODO : 32 us
-            ackwaiter.start()                                                           # TODO : 8 ms
+            ackwaiter = ACKWaiter(pkt, self.sharedState, self.transmitter, self.sharedState.event_loop)              # TODO : 32 us
+            ackwaiter.run()                                                           # TODO : 8 ms
             self.sharedState.addACK_waiter(encoded.nexthop_s,
                                            self.sharedState.get_neighbour_seqnr_sent(encoded.nexthop_s), ackwaiter) #TODO 12 us
 
@@ -85,15 +86,15 @@ class AddACKsReceipts(object):
         self.transmitter.transmit(pkt)
 
     
-class ACKWaiter(threading.Thread):
+class ACKWaiter(object):
 
-    def __init__(self, pkt, sharedState, transmitter):
+    def __init__(self, pkt, sharedState, transmitter, event_loop):
         threading.Thread.__init__(self)     
         self.pkt = pkt
         self.sharedState = sharedState
         self.stop_event = threading.Event()
         self.transmitter = transmitter              # Reference to transmitter is used to reschedule the transmission
-        self.daemon = True
+        self.event_loop = event_loop
         #self.#logger =logging.getLogger('nc_node.ACKWaiter')
 
 
@@ -102,25 +103,43 @@ class ACKWaiter(threading.Thread):
 
 
     def run(self):
-        for i in range(self.sharedState.ack_retries):
-            self.stop_event.wait(self.sharedState.ack_retry_time)
+        self.event_loop.call_later(self.sharedState.ack_retry_time, self.retry_reschedule, 0)
+
+    def retry_reschedule(self, iters):
+        if iters < self.sharedState.ack_retries:
             if self.stop_event.is_set():
                 #self.#logger.debug("ACKWaiter was stopped")
                 return
             else:
                 #self.#logger.debug("Resending packet %s", self.pkt.local_pkt_seq_num)
+                # print("transmitting, rescheduling")
                 self.transmitter.transmit(self.pkt)
-                
-        self.sharedState.incrementFailedACKs()
+                self.event_loop.call_later(self.sharedState.ack_retry_time,self.retry_reschedule, iters+1)
+
+        else:
+            # print("schedules done")
+            self.sharedState.incrementFailedACKs()
+
+
 
 def main():
     sharedState = nc_shared_state.SharedState()
     transmitter = nc_transmitter.Transmitter(sharedState)
     pkt = cope.COPE_packet()
-    waiter = ACKWaiter(pkt, sharedState, transmitter)
+    event_loop = asyncio.get_event_loop()
+    sharedState.event_loop = event_loop
+
+
+    waiter = ACKWaiter(pkt, sharedState, transmitter, event_loop)
     waiter.start()
     time.sleep(3)
-    waiter.stopWaiter()
+
+    try:
+        print("ACKWaiter running, use Ctrl+C to kill program")
+        event_loop.run_forever()
+    except:
+        waiter.stopWaiter()
+        event_loop.close()
 
 
 
