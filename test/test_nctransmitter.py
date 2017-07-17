@@ -20,7 +20,6 @@ class TestTransmitter(unittest.TestCase):
 		header1 = cope.EncodedHeader(pkt_id=1, nexthop_s=hw_dest1)
 
 		cope_pkt = cope.COPE_packet()
-		# print mockNetwInst.sendPkt.call_args_list
 		# mockNetwInst.sendPkt.call_args_list[0][0][0].show2()
 
 		# Packet contains no headers, i.e. control packet
@@ -33,7 +32,6 @@ class TestTransmitter(unittest.TestCase):
 
 		# Packet contains 1 header, i.e. native packet
 		cope_pkt.encoded_pkts.append(header1)
-		# print mockNetwInst.sendPkt.call_args_list
 		transmitter.transmit(cope_pkt)
 		sent_pkt = mockNetwInst.sendPkt.call_args_list[1][0][0]
 		self.assertEqual(sent_pkt.type, cope.COPE_PACKET_TYPE, "Incorrect packet type")

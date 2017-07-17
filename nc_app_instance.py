@@ -9,7 +9,7 @@ logging.config.fileConfig('logging.conf')
 class ApplicationInstanceAdapter(object):
     def __init__(self, sharedState):
 
-        #self.#logger =logging.getLogger('nc_node.ApplicationInstanceAdapter')
+        self.logger =logging.getLogger('nc_node.ApplicationInstanceAdapter')
         self.sharedState = sharedState
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
 
@@ -17,7 +17,7 @@ class ApplicationInstanceAdapter(object):
 
 
         # pkt.show2()
-        #self.#logger.debug(coding_utils.print_hex("Pkt payload", str(pkt.payload)))
+        self.logger.debug(coding_utils.print_hex("Pkt payload", str(pkt.payload)))
         # TODO: This might be unnecessary, used in legacy scapy implementation to check for a data packet.
         ip_pkt = pkt[ip.IP]
         if ip_pkt:
@@ -26,8 +26,8 @@ class ApplicationInstanceAdapter(object):
             localhost = "127.0.0.1"
             my_output_port = network_utils.ipToListenerPort(my_ip)
             message = ip_pkt.highest_layer.body_bytes
-            #self.#logger.debug("Sending packet on to application on my (IP, port) (%s, %d)" % (my_ip, my_output_port))
-            #self.#logger.debug(coding_utils.print_hex("Message: ", message))
+            self.logger.debug("Sending packet on to application on my (IP, port) (%s, %d)" % (my_ip, my_output_port))
+            self.logger.debug(coding_utils.print_hex("Message: ", message))
 
             self.sock.sendto(bytes(message), (localhost, my_output_port))
 

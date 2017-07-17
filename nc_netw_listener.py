@@ -27,7 +27,6 @@ class NetworkListenerHelper(threading.Thread):
 
             while self.sharedState.run_event.is_set():
                 packet = listener_socket.recvfrom(65565)
-                # print(threading.current_thread())
 
                 # Get packet from tuple
                 packet = packet[0]
@@ -36,15 +35,15 @@ class NetworkListenerHelper(threading.Thread):
 
 
                 if ether_pkt.type == cope.COPE_PACKET_TYPE and ether_pkt.src_s != self.sharedState.get_my_hw_addr():
-                    # self.logger.debug("COPE packet received" )
-                    # self.logger.debug(str(ether_pkt))
-                    # self.logger.debug(ether_pkt.bin())
+                    self.logger.debug("COPE packet received" )
+                    self.logger.debug(str(ether_pkt))
+                    self.logger.debug(ether_pkt.bin())
                     self.listener.receivePkt(ether_pkt)
                     # print(coding_utils.print_hex("Raw packet", packet))
-                    # logging.debug("Packet count %d" % pkt_count)
+                    self.logger.debug("Packet count %d" % pkt_count)
                     pass
 
-            # self.logger.debug("Stopping listener networkInstance graciously")
+            self.logger.debug("Stopping listener networkInstance graciously")
             if listener_socket:
                 listener_socket.close()
                 self.sharedState.setNetworkSocket(None)
@@ -52,7 +51,7 @@ class NetworkListenerHelper(threading.Thread):
 
 
         except socket.error as msg:
-            # self.logger.error('Socket could not be created. Error Code: ' + str(msg[0]) + ' Message ' + msg[1])
+            self.logger.error('Socket could not be created. Error Code: ' + str(msg[0]) + ' Message ' + msg[1])
             if listener_socket:
                 listener_socket.close()
                 self.sharedState.setNetworkSocket(None)
@@ -76,14 +75,13 @@ class NetworkListener(object):
             self.networkInstance.start()
 
     def receivePkt(self, ether_pkt):
-        # logging.debug('Received packet from networkInstance')
-        # print(ether_pkt)
+        self.logger.debug('Received packet from networkInstance')
         cope_pkt = ether_pkt[cope.COPE_packet]
         # print(ether_pkt[cope.COPE_packet])
         if cope_pkt:
             crcchecksum = crc_funcs.crc_checksum(cope_pkt._pack_header())
             if cope_pkt.checksum != crcchecksum:
-                # self.logger.debug("COPE packet bin() %s" % cope_pkt._pack_header())
+                self.logger.debug("COPE packet bin() %s" % cope_pkt._pack_header())
                 raise Exception("Invalid checksum for packet %d %d" %(cope_pkt.checksum, crcchecksum))
 
         else:

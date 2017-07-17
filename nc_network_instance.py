@@ -19,9 +19,9 @@ class NetworkInstanceAdapter(object):
         try:
             self.psock.send(pkt.bin())
         except Exception:
-            print("Something went wrong")
-            print("Len of pkt.bin() %d" %len(pkt.bin()))
-            print(coding_utils.print_hex("pkt.bin()", pkt.bin()))
+            self.logger.error("Something went wrong")
+            self.logger.error("Len of pkt.bin() %d" %len(pkt.bin()))
+            self.logger.error(coding_utils.print_hex("pkt.bin()", pkt.bin()))
     
 def main():
     networkInstance = NetworkInstanceAdapter(network_utils.get_first_NicName())

@@ -7,10 +7,10 @@ class StreamOrderer(object):
 		self.sharedState = sharedState
 		self.stream_list = list()
 
-		#self.#logger =logging.getLogger('nc_node.StreamOrderer')
+		self.logger =logging.getLogger('nc_node.StreamOrderer')
 
 	def order_stream(self, cope_packet):
-		#self.#logger.debug("Got packet to order \n")
+		self.logger.debug("Got packet to order \n")
 		self.stream_list.append(cope_packet)
 
 		appInstance = self.sharedState.getAppInstance()

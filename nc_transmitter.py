@@ -20,7 +20,7 @@ class Transmitter(object):
         # pkt.show2()
 
         if networkInstance:
-            #self.#logger.debug("Transmitting packet\n")
+            self.logger.debug("Transmitting packet\n")
 
             # Calculate final checksum here
             # pkt.calc_checksum()
@@ -28,7 +28,7 @@ class Transmitter(object):
             # #logger.debug(Encoded num", pkt.ENCODED_NUM
 
             # Do packet encapsulation here...
-            # #self.#logger.debug("my hw addr: %s" % self.sharedState.get_my_hw_addr())
+            # self.logger.debug("my hw addr: %s" % self.sharedState.get_my_hw_addr())
 
             if len(pkt.encoded_pkts) == 0:
                 encap_pkt = ethernet.Ethernet(src_s=self.sharedState.get_my_hw_addr(), dst_s=self.broadcast_HWAddr, type=cope.COPE_PACKET_TYPE)+pkt
@@ -52,12 +52,12 @@ class Transmitter(object):
             networkInstance.sendPkt(encap_pkt)
 
         else:
-            #self.#logger.debug("Network Instance was null, not transmitting\n")
+            self.logger.debug("Network Instance was null, not transmitting\n")
             pass
 
     def dropPkt(self, pkt_id):
         networkInstance = self.sharedState.getNetworkInstance()
 
         if networkInstance:
-            #self.#logger.debug("Dropping packet %d", pkt_id)
+            self.logger.debug("Dropping packet %d", pkt_id)
             networkInstance.dropPkt(pkt_id)

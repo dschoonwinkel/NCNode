@@ -114,7 +114,7 @@ class SharedState(object):
         return self.my_nic_name
 
     def getMACFromIP(self, ip_addr):
-        #self.#logger.debug("IP to MAC table %s" % self.ip_to_mac)
+        self.logger.debug("IP to MAC table %s" % self.ip_to_mac)
         if ip_addr in self.ip_to_mac:
             return self.ip_to_mac[ip_addr]
         else:
@@ -132,11 +132,11 @@ class SharedState(object):
             self.neighbour_seqnr_sent[neighbour] = 0
 
         self.neighbour_seqnr_sent[neighbour] += number
-        #self.#logger.debug("incrementNeighbourSeqnoSent for neighbour %s" % neighbour)
+        self.logger.debug("incrementNeighbourSeqnoSent for neighbour %s" % neighbour)
 
     def incrementNeighbourSeqnoRecv(self, neighbour, number = 1):
         self.neighbour_seqnr_recv[neighbour] += number
-        #self.#logger.debug("incrementNeighbourSeqnoRecv for neighbour %s" % neighbour)
+        self.logger.debug("incrementNeighbourSeqnoRecv for neighbour %s" % neighbour)
 
     def get_neighbour_recp_rep(self, ip_addr):
         return self.neighbour_recp_rep[ip_addr]
@@ -170,10 +170,10 @@ class SharedState(object):
                 self.neighbour_recp_rep[report.src_ip_s].add(report.last_pkt - i - 1)
 
     def updateACKwaiters(self, ackreport, neighbour):
-        #self.#logger.debug("Ackreport ")
+        self.logger.debug("Ackreport ")
 
         if str(ackreport.neighbour_s) == str(self.my_hw_addr):
-            #self.#logger.debug("updateACKwaiters running")
+            self.logger.debug("updateACKwaiters running")
             if (neighbour, ackreport.last_ack) in self.ack_waiters:
 
                 # Add a neighbour recvd set if there none for this neighbour
@@ -186,18 +186,18 @@ class SharedState(object):
                 # Use the ack_waiter information to put the correct pkt_id in the neighbour recvd set
                 self.neighbour_recvd[neighbour].add(ack_waiter.pkt.get_pktid(neighbour))
                 # Stop the ACKwaiter
-                #self.#logger.debug("Stopping ACK waiter for %d " %ackreport.last_ack)
+                self.logger.debug("Stopping ACK waiter for %d " %ackreport.last_ack)
                 ack_waiter.stopWaiter()
 
                 
             for i in range(1, 8):
                 if (ackreport.ackmap >> i & 1):
-                    # #self.#logger.debug("updateACKwaiters stopping %d" % (ackreport.last_ack - i - 1))
+                    self.logger.debug("updateACKwaiters stopping %d" % (ackreport.last_ack - i - 1))
                     # print(bin(report.ackmap))
                     # print(i, report.last_pkt - i - 1)
                     if (neighbour, ackreport.last_ack - i - 1) in self.ack_waiters:
                         # Pop removes and returns reference
-                        #self.#logger.debug("removing " + str((neighbour, ackreport.last_ack - i - 1)) + " from ackwaiters")
+                        self.logger.debug("removing " + str((neighbour, ackreport.last_ack - i - 1)) + " from ackwaiters")
 
                         ack_waiter = self.ack_waiters.pop((neighbour, ackreport.last_ack - i - 1))
                         self.neighbour_recvd[neighbour].add(ack_waiter.pkt.get_pktid(neighbour))
@@ -228,21 +228,21 @@ class SharedState(object):
         self.packetDispatcher = packetDispatcher
 
     def addPacketToPacketPool(self, pkt_id, cope_pkt):
-        # #self.#logger.debug("pkt_id %d" % pkt_id)
+        self.logger.debug("pkt_id %d" % pkt_id)
         # cope_pkt.show2()
         self.packet_pool[pkt_id] = cope_pkt
-        # #self.#logger.debug("Packet pool keys() %s" % self.packet_pool.keys())
+        self.logger.debug("Packet pool keys() %s" % self.packet_pool.keys())
         self.packet_ids_recv.add(pkt_id)
         
     def addPacketToOutputQueue(self, dstMAC, cope_pkt):
         if dstMAC not in self.packet_queues:
-            # #self.#logger.debug("Adding new neighbour output queue")
+            self.logger.debug("Adding new neighbour output queue")
             q = deque()
             q.append(cope_pkt)
             self.packet_queues[dstMAC] = q
 
         elif dstMAC in self.packet_queues:
-            # #self.#logger.debug("Adding packet to existing neighbour output queue")
+            self.logger.debug("Adding packet to existing neighbour output queue")
             q = self.packet_queues[dstMAC]
             q.append(cope_pkt)
 
@@ -305,31 +305,31 @@ class SharedState(object):
 
     def incrementPacketRecv(self, packets = 1):
         self.packet_count_recv += packets
-        #self.#logger.debug("incrementPacketRecv: %d" % self.packet_count_recv)
+        self.logger.debug("incrementPacketRecv: %d" % self.packet_count_recv)
 
     def incrementPacketSeen(self, packets = 1):
         self.packet_count_seen += packets
-        #self.#logger.debug("incrementPacketRecv: %d" % self.packet_count_seen)
+        self.logger.debug("incrementPacketRecv: %d" % self.packet_count_seen)
 
     def incrementTrafficPktsIn(self, packets = 1):
         self.traffic_packets_in += packets
-        #self.#logger.debug("incrementTrafficPktsIn: %d" % self.traffic_packets_in)
+        self.logger.debug("incrementTrafficPktsIn: %d" % self.traffic_packets_in)
 
     def incrementTrafficPktsOut(self, packets = 1):
         self.traffic_packets_out += packets
-        #self.#logger.debug("incrementTrafficPktsOut: %d" % self.traffic_packets_out)
+        self.logger.debug("incrementTrafficPktsOut: %d" % self.traffic_packets_out)
 
     def incrementPktsSent(self, packets = 1, encoded = False):
         if not encoded:
             self.native_packets_sent += packets
-            #self.#logger.debug("incrementNativePktsSent: %d" % self.native_packets_sent)
+            self.logger.debug("incrementNativePktsSent: %d" % self.native_packets_sent)
         else:
             self.encoded_packets_sent += packets
-            #self.#logger.debug("incrementEncodedPktsSent: %d" % self.encoded_packets_sent)
+            self.logger.debug("incrementEncodedPktsSent: %d" % self.encoded_packets_sent)
     
     def incrementFailedACKs(self, failed = 1):
         self.acks_failed += failed
-        #self.#logger.debug("incrementFailedACKs: %d" % self.acks_failed)
+        self.logger.debug("incrementFailedACKs: %d" % self.acks_failed)
 
     def getPacketRecv(self):
         return self.packet_count_recv
@@ -350,7 +350,7 @@ class SharedState(object):
         return self.networkInstance
 
     def scheduleACK(self, neighbour, seq_no):
-        #self.#logger.debug("scheduling ACK for seq_no %d" % seq_no)
+        self.logger.debug("scheduling ACK for seq_no %d" % seq_no)
         ack_header = cope.ACKHeader()                               #TODO 70 us
         ack_header.neighbour_s = neighbour                                    #TODO 8.7 us
         ack_header.last_ack = seq_no                                        #TODO 8.5 us
@@ -374,7 +374,7 @@ class SharedState(object):
         if seq_no_difference < 0:                                         # TODO 80 ns
             # If still within the byte, add the report to the ack_history, but do nothing else
             if seq_no_difference >= -7:                                   # TODO 80 ns
-                #self.#logger.debug("Adding ack to ack_history")
+                self.logger.debug("Adding ack to ack_history")
                 ackmap = (ackmap | (1 << -seq_no_difference)) & 255       # TODO 300 ns
             # Else: Simply discard the report, it is probably stale anyway
             else:
@@ -404,7 +404,7 @@ class SharedState(object):
             receipt_header.src_ip_s = src_ip
             receipt_header.last_pkt = ip_seq_no
 
-            #self.#logger.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
+            self.logger.debug("scheduling Receipts for ip_seq_no %d" % ip_seq_no)
 
             bitmap = 0
             if ip_pkt.src_s in self.receipts_history:
@@ -425,7 +425,7 @@ class SharedState(object):
             if seq_no_difference < 0:
                 # If still within the byte, add the report to the ack_history, but do nothing else
                 if seq_no_difference >= -7:
-                    #self.#logger.debug("Adding ack to ack_history")
+                    self.logger.debug("Adding ack to ack_history")
                     bitmap = (bitmap | (1 << -seq_no_difference)) & 255
                 # Else: Simply discard the report, it is probably stale anyway
                 else:
@@ -443,14 +443,13 @@ class SharedState(object):
         self.run_event.clear()
         # print(self.ack_waiters.keys())
         for key in list(self.ack_waiters.keys()):
-            # print(key)
             self.ack_waiters[key].stopWaiter()
 
         self.controlPktWaiter.stopWaiter()
 
 def main():
-    #self.#logger.config.fileConfig('#self.#logger.conf')
-    #logger =#self.#logger.getLogger('nc_node.ncSharedStateMain')
+    self.logger.config.fileConfig('self.logger.conf')
+    #logger =self.logger.getLogger('nc_node.ncSharedStateMain')
     #logger.debug("Everything is working")
     pass
 
