@@ -10,6 +10,7 @@ import time
 import pickle
 import network_utils
 logging.config.fileConfig('logging.conf')
+import coding_utils
 
 class UDPPortToIP(object):
 
@@ -43,7 +44,7 @@ class UDPStreamHandler(threading.Thread):
         while self.sharedState.run_event.is_set():
             data, addr = sock.recvfrom(65565) # buffer size is 65535 bytes
             # Send the data to the encapsulator
-            self.logger.debug(coding_utils.print_hex("Received data", data))
+            # self.logger.debug(coding_utils.print_hex("Received data", data))
 
             self.sharedState.times["Streamreader received"].append(time.time())
             self.encapsulator.encapsulate(data, UDPPortToIP.ip_from_udpport(self.listening_port))

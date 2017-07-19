@@ -21,7 +21,7 @@ class Decoder(object):
         self.logger.critical("Starting ncDecoderLogger")
 
     def decode(self, cope_pkt, from_neighbour):
-        self.logger.debug(cope_pkt.bin())
+        # self.logger.debug(cope_pkt.bin())
         self.logger.debug("Got packet to decode")
         # Decode the COPE packets contained in this packet
         # Schedule ACKs and receipt reports
@@ -44,11 +44,6 @@ class Decoder(object):
                 self.logger.debug("Pkt_id %d" % pkt_id)
                 self.sharedState.addPacketToPacketPool(pkt_id, cope_pkt)
                 # Do ACK scheduling here
-                self.logger.info("Uncoded pkt seen: %d, received %d" % (len(self.sharedState.pkts_ids_received), packets_received))
-                # if from_neighbour == self.sharedState.get_my_hw_addr():
-                     self.logger.debug("Overheard locally, do not schedule ACK")
-                #
-                # else:
                 self.sharedState.scheduleACK(from_neighbour, cope_pkt.local_pkt_seq_num)
 
                 # Let other nodes know that I have received this packet

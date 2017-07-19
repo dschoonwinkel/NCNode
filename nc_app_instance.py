@@ -6,6 +6,8 @@ import nc_shared_state
 from pypacker.layer12 import cope, ethernet
 from pypacker.layer3 import ip
 logging.config.fileConfig('logging.conf')
+import coding_utils
+
 class ApplicationInstanceAdapter(object):
     def __init__(self, sharedState):
 
@@ -17,7 +19,7 @@ class ApplicationInstanceAdapter(object):
 
 
         # pkt.show2()
-        self.logger.debug(coding_utils.print_hex("Pkt payload", str(pkt.payload)))
+        # self.logger.debug(coding_utils.print_hex("Pkt payload", str(pkt.payload)))
         # TODO: This might be unnecessary, used in legacy scapy implementation to check for a data packet.
         ip_pkt = pkt[ip.IP]
         if ip_pkt:
@@ -27,7 +29,7 @@ class ApplicationInstanceAdapter(object):
             my_output_port = network_utils.ipToListenerPort(my_ip)
             message = ip_pkt.highest_layer.body_bytes
             self.logger.debug("Sending packet on to application on my (IP, port) (%s, %d)" % (my_ip, my_output_port))
-            self.logger.debug(coding_utils.print_hex("Message: ", message))
+            # self.logger.debug(coding_utils.print_hex("Message: ", message))
 
             self.sock.sendto(bytes(message), (localhost, my_output_port))
 

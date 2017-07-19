@@ -36,8 +36,8 @@ class NetworkListenerHelper(threading.Thread):
 
                 if ether_pkt.type == cope.COPE_PACKET_TYPE and ether_pkt.src_s != self.sharedState.get_my_hw_addr():
                     self.logger.debug("COPE packet received" )
-                    self.logger.debug(str(ether_pkt))
-                    self.logger.debug(ether_pkt.bin())
+                    # self.logger.debug(str(ether_pkt))
+                    # self.logger.debug(ether_pkt.bin())
                     self.listener.receivePkt(ether_pkt)
                     # print(coding_utils.print_hex("Raw packet", packet))
                     self.logger.debug("Packet count %d" % pkt_count)

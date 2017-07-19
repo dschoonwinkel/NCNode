@@ -53,10 +53,9 @@ class Encoder(object):
             coded_pkt = cope.COPE_packet()
             coded_payload = b''
 
-            self.logger.debug("Len of valid_codables %d" % len(valid_codables))
-
             # There are packets to encode
             if valid_codables and len(valid_codables) >= 1:
+                self.logger.debug("Len of valid_codables %d" % len(valid_codables))
                 # Encode additional packet together, if they are decodable at the receiver
                 for cope_pkt in valid_codables:
                     coded_pkt.encoded_pkts.append(cope_pkt.encoded_pkts[0])
