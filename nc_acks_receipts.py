@@ -103,7 +103,8 @@ class ACKWaiter(object):
 
 
     def run(self):
-        self.event_loop.call_later(self.sharedState.ack_retry_time, self.retry_reschedule, 0)
+        if self.event_loop.is_running():
+            self.event_loop.call_later(self.sharedState.ack_retry_time, self.retry_reschedule, 0)
 
     def retry_reschedule(self, iters):
         if iters < self.sharedState.ack_retries:

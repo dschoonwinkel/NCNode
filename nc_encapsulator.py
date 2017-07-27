@@ -3,7 +3,6 @@ from pypacker.layer3.ip import IP
 from pypacker.layer4.udp import UDP
 import logging
 import logging.config
-# import COPE_packet_classes as COPE_classes
 import time
 
 logging.config.fileConfig('logging.conf')
@@ -24,7 +23,9 @@ class Encapsulator(object):
         local_seq_no = self.sharedState.getAndIncrementLocalSeqNum()                        # TODO 422 ns
         pkt_id = COPE_packet.generatePktId(src_ip, local_seq_no)                           # TODO 3 us
 
+        self.sharedState.times["Encapsulator processed0"].append(time.time())
         cope_pkt = COPE_packet() + IP(src_s=src_ip, dst_s=IP_addr, id=local_seq_no) + UDP(sport=11777, dport=14541)  # TODO 90 us
+        self.sharedState.times["Encapsulator processed1"].append(time.time())
         if type(data) == str:
             data = data.encode('utf-8')
         cope_pkt[UDP].body_bytes = data
@@ -34,7 +35,7 @@ class Encapsulator(object):
         cope_pkt.encoded_pkts.append(EncodedHeader(pkt_id=pkt_id, nexthop_s=self.broadcast_HWAddr))
         cope_pkt.local_pkt_seq_num = local_seq_no           # TODO 4.91 us per loop
 
-        self.sharedState.times["Encapsulator processed"].append(time.time())                # TODO 613 ns
+        self.sharedState.times["Encapsulator processed2"].append(time.time())                # TODO 613 ns
 
 
         self.enqueuer.enqueue(cope_pkt)
