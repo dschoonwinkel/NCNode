@@ -22,6 +22,9 @@ class NetworkInstanceAdapter(object):
             self.logger.error("Something went wrong")
             self.logger.error("Len of pkt.bin() %d" %len(pkt.bin()))
             self.logger.error(coding_utils.print_hex("pkt.bin()", pkt.bin()))
+
+    def dropPkt(self, pkt_id):
+        pass
     
 def main():
     networkInstance = NetworkInstanceAdapter(network_utils.get_first_NicName())
