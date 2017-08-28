@@ -1,12 +1,12 @@
 import unittest
 import nc_shared_state
-import COPE_packet_classes as COPE_classes
 from pypacker.layer12 import cope
 from pypacker.layer3 import ip
 import crc_funcs
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
+import socket
 #logger =logging.getLogger('nc_node.test_ncsharedstate')
 
 
@@ -63,11 +63,9 @@ class TestSharedState(unittest.TestCase):
         cope_pkt[ip.IP].body_bytes = b"Hello!"
 
         sharedState.scheduleReceipts(cope_pkt)
-        # sharedState.receipts_queue[-1].show2()
         self.assertEqual(sharedState.receipts_queue[-1].bit_map, 1)
         cope_pkt[ip.IP].id = ip_seq_no + 1
         sharedState.scheduleReceipts(cope_pkt)
-        # sharedState.receipts_queue[-1].show2()
         self.assertEqual(sharedState.receipts_queue[-1].bit_map, 3)
         cope_pkt[ip.IP].id = ip_seq_no + 3
         sharedState.scheduleReceipts(cope_pkt)
@@ -78,36 +76,39 @@ class TestSharedState(unittest.TestCase):
         # sharedState.receipts_queue[-1].show2()
         self.assertEqual(sharedState.receipts_queue[-1].bit_map, 27)
 
-    # def test_updateRecpReports(self):
-    #     sharedState = nc_shared_state.SharedState()
-    #     report = COPE_classes.ReportHeader()
-    #
-    #     src_ip = "10.0.0.1"
-    #     report.src_ip = src_ip
-    #     report.last_pkt = 10
-    #     report.bit_map = 138
-    #
-    #     sharedState.updateRecpReports(report)
-    #
-    #     self.assertFalse(11 in sharedState.neighbour_recp_rep["10.0.0.1"], '11 should not be in set')
-    #     self.assertFalse(3 in sharedState.neighbour_recp_rep["10.0.0.1"], '3')
-    #     self.assertFalse(7 in sharedState.neighbour_recp_rep["10.0.0.1"], '7')
-    #     self.assertTrue(10 in sharedState.neighbour_recp_rep["10.0.0.1"], '10')
-    #     self.assertTrue(8 in sharedState.neighbour_recp_rep["10.0.0.1"], '8')
-    #     self.assertTrue(6 in sharedState.neighbour_recp_rep["10.0.0.1"], '6')
-    #     self.assertTrue(2 in sharedState.neighbour_recp_rep["10.0.0.1"], '2')
+    def test_updateRecpReports(self):
+        sharedState = nc_shared_state.SharedState()
+        report = cope.ReportHeader()
+
+        src_ip = "10.0.0.1"
+        report.src_ip_s = src_ip
+        report.last_pkt = 10
+        report.bit_map = 138
+
+        sharedState.updateRecpReports(report)
+
+        # byte_src_ip = socket.inet_aton(src_ip)
+
+        self.assertFalse(11 in sharedState.neighbour_recp_rep[src_ip], '11 should not be in set')
+        self.assertFalse(3 in sharedState.neighbour_recp_rep[src_ip], '3')
+        self.assertFalse(7 in sharedState.neighbour_recp_rep[src_ip], '7')
+        self.assertTrue(10 in sharedState.neighbour_recp_rep[src_ip], '10')
+        self.assertTrue(8 in sharedState.neighbour_recp_rep[src_ip], '8')
+        self.assertTrue(6 in sharedState.neighbour_recp_rep[src_ip], '6')
+        self.assertTrue(2 in sharedState.neighbour_recp_rep[src_ip], '2')
 
     def test_getOutputQueueReady(self):
         sharedState = nc_shared_state.SharedState()
 
         dest_hw_addr = "00:00:00:00:00:02"
 
-        cope_pkt = COPE_classes.COPE_packet() / "NC Runner test2"
+        cope_pkt = cope.COPE_packet()
+        cope_pkt.body_bytes = b"NC Runner test2"
 
         src_ip = sharedState.get_my_ip_addr()
         pkt_id_str = src_ip + str(1)
         pkt_id = crc_funcs.crc_hash(pkt_id_str)
-        cope_pkt.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
+        cope_pkt.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
         cope_pkt.local_pkt_seq_num = 1
         cope_pkt.calc_checksum()
         sharedState.addPacketToOutputQueue(dest_hw_addr, cope_pkt)
@@ -124,22 +125,24 @@ class TestSharedState(unittest.TestCase):
 
         dest_hw_addr = "00:00:00:00:00:02"
 
-        cope_pkt1 = COPE_classes.COPE_packet() / "NC Runner test2"
+        cope_pkt1 = cope.COPE_packet()
+        cope_pkt1.body_bytes = b"NC Runner test2"
 
         src_ip = sharedState.get_my_ip_addr()
         pkt_id_str = src_ip + str(1)
         pkt_id = crc_funcs.crc_hash(pkt_id_str)
-        cope_pkt1.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
+        cope_pkt1.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id, nexthop_s=dest_hw_addr))
         cope_pkt1.local_pkt_seq_num = 1
         cope_pkt1.calc_checksum()
         sharedState.addPacketToOutputQueue(dest_hw_addr, cope_pkt1)
 
-        cope_pkt2 = COPE_classes.COPE_packet() / "NC Runner test2"
+        cope_pkt2 = cope.COPE_packet()
+        cope_pkt2.body_bytes = b"NC Runner test2"
 
         src_ip = sharedState.get_my_ip_addr()
         pkt_id_str = src_ip + str(2)
         pkt_id = crc_funcs.crc_hash(pkt_id_str)
-        cope_pkt2.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
+        cope_pkt2.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id, nexthop_s=dest_hw_addr))
         cope_pkt2.local_pkt_seq_num = 2
         cope_pkt2.calc_checksum()
         sharedState.addPacketToOutputQueue(dest_hw_addr, cope_pkt2)
@@ -170,12 +173,13 @@ class TestSharedState(unittest.TestCase):
 
         dest_hw_addr = "00:00:00:00:00:02"
 
-        cope_pkt1 = COPE_classes.COPE_packet() / "NC Runner test2"
+        cope_pkt1 = cope.COPE_packet()
+        cope_pkt1.body_bytes = b"NC Runner test2"
 
         src_ip = sharedState.get_my_ip_addr()
         pkt_id_str = src_ip + str(1)
         pkt_id = crc_funcs.crc_hash(pkt_id_str)
-        cope_pkt1.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
+        cope_pkt1.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
         cope_pkt1.local_pkt_seq_num = 1
         cope_pkt1.calc_checksum()
         sharedState.addPacketToOutputQueue(dest_hw_addr, cope_pkt1)
@@ -190,22 +194,24 @@ class TestSharedState(unittest.TestCase):
 
         dest_hw_addr = "00:00:00:00:00:02"
 
-        cope_pkt1 = COPE_classes.COPE_packet() / "NC Runner test2"
+        cope_pkt1 = cope.COPE_packet()
+        cope_pkt1.body_bytes = b"NC Runner test2"
 
         src_ip = sharedState.get_my_ip_addr()
         pkt_id_str = src_ip + str(1)
         pkt_id = crc_funcs.crc_hash(pkt_id_str)
-        cope_pkt1.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
+        cope_pkt1.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id, nexthop_s=dest_hw_addr))
         cope_pkt1.local_pkt_seq_num = 1
         cope_pkt1.calc_checksum()
         sharedState.addPacketToOutputQueue(dest_hw_addr, cope_pkt1)
 
-        cope_pkt2 = COPE_classes.COPE_packet() / "NC Runner test2"
+        cope_pkt2 = cope.COPE_packet()
+        cope_pkt2.body_bytes = b"NC Runner test2"
 
         src_ip = sharedState.get_my_ip_addr()
         pkt_id_str = src_ip + str(2)
         pkt_id = crc_funcs.crc_hash(pkt_id_str)
-        cope_pkt2.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
+        cope_pkt2.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id, nexthop_s=dest_hw_addr))
         cope_pkt2.local_pkt_seq_num = 2
         cope_pkt2.calc_checksum()
         sharedState.addPacketToOutputQueue(dest_hw_addr, cope_pkt2)
@@ -221,8 +227,9 @@ class TestSharedState(unittest.TestCase):
         src_ip = sharedState.get_my_ip_addr()
         pkt_id_str = src_ip + str(1)
         pkt_id = crc_funcs.crc_hash(pkt_id_str)
-        cope_pkt1 = COPE_classes.COPE_packet() / "NC Runner test2"
-        cope_pkt1.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
+        cope_pkt1 = cope.COPE_packet()
+        cope_pkt1.body_bytes = b"NC Runner test2"
+        cope_pkt1.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id, nexthop_s=dest_hw_addr))
 
         sharedState.addPacketToPacketPool(pkt_id, cope_pkt1)
         self.assertTrue(sharedState.wasPktIdReceived(pkt_id))
@@ -234,8 +241,9 @@ class TestSharedState(unittest.TestCase):
         src_ip = sharedState.get_my_ip_addr()
         pkt_id_str = src_ip + str(1)
         pkt_id = crc_funcs.crc_hash(pkt_id_str)
-        cope_pkt1 = COPE_classes.COPE_packet() / "NC Runner test2"
-        cope_pkt1.encoded_pkts.append(COPE_classes.EncodedHeader(pkt_id=pkt_id, nexthop=dest_hw_addr))
+        cope_pkt1 = cope.COPE_packet()
+        cope_pkt1.body_bytes = b"NC Runner test2"
+        cope_pkt1.encoded_pkts.append(cope.EncodedHeader(pkt_id=pkt_id, nexthop_s=dest_hw_addr))
 
         self.assertFalse(sharedState.wasPktIdReceived(pkt_id))
 

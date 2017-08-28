@@ -1,39 +1,40 @@
 import unittest
 import nc_shared_state
-import COPE_packet_classes as COPE_classes
-import scapy.all as scapy
-import coding_utils
 import nc_acks_receipts
-import mock
+from pypacker.layer12 import cope
+from unittest.mock import Mock
 import time
 import nc_acks_receipts
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_ncacksreceipt')
+import asyncio
+#logger =logging.getLogger('nc_node.test_ncacksreceipt')
 
 
 class TestACKRecps(unittest.TestCase):
     def test_processPkt_ack(self):
-        mockDecoder = mock.Mock()
+        mockDecoder = Mock()
         sharedState = nc_shared_state.SharedState()
         acksRecps = nc_acks_receipts.ACKsReceipts(sharedState, mockDecoder)
         src_HWAddr = sharedState.get_my_hw_addr()
-        neighbourMAC = "000:00:00:00:00:02"
+        neighbourMAC = "00:00:00:00:00:02"
 
         # Set up ACKWaiters
-        mockACKWaiter_pkt10 = mock.Mock()
-        mockACKWaiter_pkt2 = mock.Mock()
-        mockACKWaiter_pkt3 = mock.Mock()
+        mockACKWaiter_pkt10 = Mock()
+        mockACKWaiter_pkt2 = Mock()
+        mockACKWaiter_pkt3 = Mock()
 
         sharedState.addACK_waiter(neighbourMAC, 10, mockACKWaiter_pkt10)
         sharedState.addACK_waiter(neighbourMAC, 3, mockACKWaiter_pkt3)
         sharedState.addACK_waiter(neighbourMAC, 2, mockACKWaiter_pkt2)
 
-        ackcope_pkt = COPE_classes.COPE_packet()
+        # print(sharedState.ack_waiters)
+
+        ackcope_pkt = cope.COPE_packet()
 
         # ACKs packet 10, as well as (1100 0000), i.e. packets 2,3
-        ackHeader = COPE_classes.ACKHeader(neighbour=src_HWAddr, last_ack=10, ack_map=192)
+        ackHeader = cope.ACKHeader(neighbour_s=src_HWAddr, last_ack=10, ack_map=192)
         ackcope_pkt.acks.append(ackHeader)
         acksRecps.processPkt(ackcope_pkt, neighbourMAC)
 
@@ -44,18 +45,21 @@ class TestACKRecps(unittest.TestCase):
         mockDecoder.decode.assert_called()
 
     def test_processPkt_recp(self):
-        mockDecoder = mock.Mock()
+        mockDecoder = Mock()
         sharedState = nc_shared_state.SharedState()
         acksRecps = nc_acks_receipts.ACKsReceipts(sharedState, mockDecoder)
+        sharedState.my_ip_addr = "10.0.0.1"
         src_HWAddr = sharedState.get_my_hw_addr()
         src_ip = sharedState.get_my_ip_addr()
 
-        recpcope_pkt = COPE_classes.COPE_packet()
+        recpcope_pkt = cope.COPE_packet()
 
         # ACKs packet 10, as well as (1100 0000), i.e. packets 2,3
-        recpHeader = COPE_classes.ReportHeader(src_ip=src_ip, last_pkt=10, bit_map=192)
+        recpHeader = cope.ReportHeader(src_ip_s=src_ip, last_pkt=10, bit_map=192)
         recpcope_pkt.reports.append(recpHeader)
         acksRecps.processPkt(recpcope_pkt, src_HWAddr)
+
+        # print(sharedState.neighbour_recp_rep.keys())
 
         self.assertTrue(10 in sharedState.neighbour_recp_rep[src_ip], "Pkt 10 was not found in neighbour_recp_rep")
         self.assertTrue(3 in sharedState.neighbour_recp_rep[src_ip], "Pkt 3 was not found in neighbour_recp_rep")
@@ -65,7 +69,7 @@ class TestACKRecps(unittest.TestCase):
 
     # Failure testing: test response to invalid COPE packet
     def test_processPkt_invalidCOPEPkt(self):
-        mockDecoder = mock.Mock()
+        mockDecoder = Mock()
         sharedState = nc_shared_state.SharedState()
         acksRecps = nc_acks_receipts.ACKsReceipts(sharedState, mockDecoder)
         src_HWAddr = sharedState.get_my_hw_addr()
@@ -77,15 +81,16 @@ class TestACKRecps(unittest.TestCase):
         mockDecoder.decode.assert_not_called()
 
     def test_addACKSRecps(self):
-        mockTransmitter = mock.Mock()
+        mockTransmitter = Mock()
         sharedState = nc_shared_state.SharedState()
         addAcksRecps = nc_acks_receipts.AddACKsReceipts(sharedState, mockTransmitter)
         src_HWAddr = sharedState.get_my_hw_addr()
+        sharedState.my_ip_addr = "10.0.0.1"
         src_ip = sharedState.get_my_ip_addr()
-        cope_pkt = COPE_classes.COPE_packet()
+        cope_pkt = cope.COPE_packet()
 
-        ackHeader = COPE_classes.ACKHeader(neighbour=src_HWAddr, last_ack=10, ack_map=192)
-        recpHeader = COPE_classes.ReportHeader(src_ip=src_ip, last_pkt=10, bit_map=192)
+        ackHeader = cope.ACKHeader(neighbour_s=src_HWAddr, last_ack=10, ack_map=192)
+        recpHeader = cope.ReportHeader(src_ip_s=src_ip, last_pkt=10, bit_map=192)
         sharedState.ack_queue.append(ackHeader)
         sharedState.receipts_queue.append(recpHeader)
 
@@ -109,12 +114,27 @@ class TestACKRecps(unittest.TestCase):
     #
     #     mockTransmitter.transmit.assert_called_with(cope_pkt)
 
-    def test_ACKWaiter_waitTime(self):
-        cope_pkt = COPE_classes.COPE_packet()
-        sharedState = nc_shared_state.SharedState()
-        mockTransmitter = mock.Mock()
+    # OLD THREAD BASED APPROACH
+    # def test_ACKWaiter_waitTime(self):
+    #     cope_pkt = cope.COPE_packet()
+    #     sharedState = nc_shared_state.SharedState()
+    #     mockTransmitter = Mock()
 
-        ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter)
+    #     ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter)
+    #     ack_waiter.start()
+
+    #     time.sleep(1)
+
+    #     mockTransmitter.transmit.assert_not_called()
+    #     ack_waiter.stopWaiter()
+
+    def test_ACKWaiter_waitTime(self):
+        cope_pkt = cope.COPE_packet()
+        sharedState = nc_shared_state.SharedState()
+        mockTransmitter = Mock()
+        event_loop = asyncio.get_event_loop()
+
+        ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter, event_loop)
         ack_waiter.start()
 
         time.sleep(1)
@@ -122,12 +142,34 @@ class TestACKRecps(unittest.TestCase):
         mockTransmitter.transmit.assert_not_called()
         ack_waiter.stopWaiter()
 
-    def test_ACKWaiter_stop(self):
-        cope_pkt = COPE_classes.COPE_packet()
-        sharedState = nc_shared_state.SharedState()
-        mockTransmitter = mock.Mock()
+    def test_ACKWaiter_complete(self):
 
-        ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter)
+        async def waiting_task():
+            await asyncio.sleep(2)
+
+        cope_pkt = cope.COPE_packet()
+        sharedState = nc_shared_state.SharedState()
+        sharedState.ack_retries = 2
+        sharedState.ack_retry_time = 0.1
+        mockTransmitter = Mock()
+        event_loop = asyncio.get_event_loop()
+
+        ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter, event_loop)
+        ack_waiter.start()
+
+        event_loop.run_until_complete(waiting_task())
+
+        mockTransmitter.transmit.assert_called()
+        self.assertEqual(mockTransmitter.transmit.call_count, sharedState.ack_retries)
+        ack_waiter.stopWaiter()
+
+    def test_ACKWaiter_stop(self):
+        cope_pkt = cope.COPE_packet()
+        sharedState = nc_shared_state.SharedState()
+        mockTransmitter = Mock()
+        event_loop = asyncio.get_event_loop()
+
+        ack_waiter = nc_acks_receipts.ACKWaiter(cope_pkt, sharedState, mockTransmitter, event_loop)
         ack_waiter.start()
         ack_waiter.stopWaiter()
 
@@ -137,7 +179,7 @@ class TestACKRecps(unittest.TestCase):
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestACKRecps)
     unittest.TextTestRunner(verbosity=2).run(suite)
-    logger.debug("Tests run")
+    #logger.debug("Tests run")
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.config.fileConfig('logging.conf')
 
 class StreamOrderer(object):
 
@@ -7,8 +7,10 @@ class StreamOrderer(object):
 		self.sharedState = sharedState
 		self.stream_list = list()
 
+		self.logger =logging.getLogger('nc_node.StreamOrderer')
+
 	def order_stream(self, cope_packet):
-		logging.debug("Got packet to order\n")
+		self.logger.debug("Got packet to order \n")
 		self.stream_list.append(cope_packet)
 
 		appInstance = self.sharedState.getAppInstance()

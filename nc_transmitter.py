@@ -1,55 +1,63 @@
 import logging
-# logging.basicConfig(level=logging.DEBUG)
-import scapy.all as scapy
-import COPE_packet_classes as COPE_classes
+logging.basicConfig(level=logging.DEBUG)
 import logging.config
 import crc_funcs
-
+from pypacker.layer12 import cope, ethernet
+import time
+logging.config.fileConfig('logging.conf')
 
 class Transmitter(object):
 
-	def __init__(self, sharedState):
-		self.sharedState = sharedState
-		self.broadcast_HWAddr = "ff:ff:ff:ff:ff:ff"
-		logging.config.fileConfig('logging.conf')
-		self.logger = logging.getLogger('nc_node.Transmitter')
+    def __init__(self, sharedState):
+        self.sharedState = sharedState
+        self.broadcast_HWAddr = "ff:ff:ff:ff:ff:ff"
 
-	def transmit(self, pkt):
-		networkInstance = self.sharedState.getNetworkInstance()
+        self.logger =logging.getLogger('nc_node.Transmitter')
 
-		# pkt.show2()
+    def transmit(self, pkt):
+        networkInstance = self.sharedState.getNetworkInstance()
 
-		if networkInstance:
-			self.logger.debug("Transmitting packet\n")
+        # pkt.show2()
 
-			# Calculate final checksum here
-			pkt.calc_checksum()
-			encap_pkt = None
-			# logger.debug(Encoded num", pkt.ENCODED_NUM
+        if networkInstance:
+            self.logger.debug("Transmitting packet\n")
 
-			# Do packet encapsulation here...
-			# self.logger.debug("my hw addr: %s" % self.sharedState.get_my_hw_addr())
-			if len(pkt.encoded_pkts) == 0:
-				encap_pkt = scapy.Ether(src=self.sharedState.get_my_hw_addr(), dst=self.broadcast_HWAddr, type=COPE_classes.COPE_PACKET_TYPE)/pkt
-			elif len(pkt.encoded_pkts) == 1:
-				encap_pkt = scapy.Ether(src=self.sharedState.get_my_hw_addr(), dst=pkt.encoded_pkts[0].nexthop, type=COPE_classes.COPE_PACKET_TYPE)/pkt
-				self.sharedState.incrementPktsSent(encoded = False)
-			elif len(pkt.encoded_pkts) > 1:
-				encap_pkt = scapy.Ether(src=self.sharedState.get_my_hw_addr(), dst=self.broadcast_HWAddr, type=COPE_classes.COPE_PACKET_TYPE)/pkt
-				self.sharedState.incrementPktsSent(encoded = True)
-			else:
-				self.logger.error("Impossible ENCODED_NUM, stopping transmit")
-				return
+            # Calculate final checksum here
+            # pkt.calc_checksum()
+            encap_pkt = None
+            # #logger.debug(Encoded num", pkt.ENCODED_NUM
 
-			# encap_pkt.show2()
-			networkInstance.sendPkt(encap_pkt)
-				
-		else:
-			self.logger.debug("Network Instance was null, not transmitting\n")
+            # Do packet encapsulation here...
+            # self.logger.debug("my hw addr: %s" % self.sharedState.get_my_hw_addr())
 
-	def dropPkt(self, pkt_id):
-		networkInstance = self.sharedState.getNetworkInstance()
+            if len(pkt.encoded_pkts) == 0:
+                encap_pkt = ethernet.Ethernet(src_s=self.sharedState.get_my_hw_addr(), dst_s=self.broadcast_HWAddr, type=cope.COPE_PACKET_TYPE)+pkt
+            elif len(pkt.encoded_pkts) == 1:
+                encap_pkt = ethernet.Ethernet(src_s=self.sharedState.get_my_hw_addr(), dst_s=pkt.encoded_pkts[0].nexthop_s, type=cope.COPE_PACKET_TYPE)+pkt
+                # self.logger.debug(str(encap_pkt))
+                # self.logger.debug(encap_pkt.bin())
+                self.sharedState.incrementPktsSent(encoded = False)
 
-		if networkInstance:
-			self.logger.debug("Dropping packet %d", pkt_id)
-			networkInstance.dropPkt(pkt_id)
+            elif len(pkt.encoded_pkts) > 1:
+                encap_pkt = ethernet.Ethernet(src_s=self.sharedState.get_my_hw_addr(), dst_s=self.broadcast_HWAddr, type=cope.COPE_PACKET_TYPE)+pkt
+                self.sharedState.incrementPktsSent(encoded = True)
+            else:
+                self.logger.error("Impossible ENCODED_NUM, stopping transmit")
+                return
+
+            # encap_pkt.show2()
+
+            self.sharedState.resetControlPktScheduler()
+            self.sharedState.times["Transmitter send"].append(time.time())
+            networkInstance.sendPkt(encap_pkt)
+
+        else:
+            self.logger.debug("Network Instance was null, not transmitting\n")
+            pass
+
+    def dropPkt(self, pkt_id):
+        networkInstance = self.sharedState.getNetworkInstance()
+
+        if networkInstance:
+            self.logger.debug("Dropping packet %d", pkt_id)
+            networkInstance.dropPkt(pkt_id)

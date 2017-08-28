@@ -2,8 +2,9 @@ import unittest
 import COPE_packet_classes as COPE_classes
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_copepktclasses')
+#logger =logging.getLogger('nc_node.test_copepktclasses')
 import crc_funcs
+import coding_utils
 
 
 class TestCOPEPktClasses(unittest.TestCase):
@@ -34,13 +35,51 @@ class TestCOPEPktClasses(unittest.TestCase):
         cope_pkt.calc_checksum()
         self.assertEqual(cope_pkt.checksum, checksum_correct_value, "Checksum was incorrect after calculations")
 
+    def test_COPEpkt_checkneighbour(self):
+        cope_pkt = COPE_classes.COPE_packet()
+        hw_dest1 = "00:00:00:00:00:01"
+        hw_dest2 = "00:00:00:00:00:02"
+        hw_dest3 = "00:00:00:00:00:03"
+        hw_dest4 = "00:00:00:00:00:04"
+        header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
+        header2 = COPE_classes.EncodedHeader(pkt_id=2, nexthop=hw_dest2)
+        header3 = COPE_classes.EncodedHeader(pkt_id=3, nexthop=hw_dest3)
 
+        cope_pkt.encoded_pkts.append(header1)
+        cope_pkt.encoded_pkts.append(header2)
+        cope_pkt.encoded_pkts.append(header3)
+
+        self.assertTrue(cope_pkt.check_nexthops(hw_dest1), "Check must be true for hw_dest1")
+        self.assertTrue(cope_pkt.check_nexthops(hw_dest2), "Check must be true for hw_dest2")
+        self.assertTrue(cope_pkt.check_nexthops(hw_dest3), "Check must be true for hw_dest3")
+        self.assertFalse(cope_pkt.check_nexthops(hw_dest4), "Check must be true for hw_dest4")
+
+    def test_COPEpkt_lengths(self):
+        cope_pkt = COPE_classes.COPE_packet()
+
+        self.assertEqual(len(str(cope_pkt)), 12)
+
+        hw_dest1 = "00:00:00:00:00:01"
+        header1 = COPE_classes.EncodedHeader(pkt_id=1, nexthop=hw_dest1)
+        cope_pkt.encoded_pkts.append(header1)
+        # print coding_utils.print_hex("Simple COPE packet", str(cope_pkt))
+        self.assertEqual(len(str(cope_pkt)), 26)
+
+        report = COPE_classes.ReportHeader(src_ip = "10.0.0.2", last_pkt=1, bit_map=1)
+        cope_pkt.reports.append(report)
+
+        self.assertEqual(len(str(cope_pkt)), 35)
+
+        ack = COPE_classes.ACKHeader(neighbour = hw_dest1, last_ack=1, ack_map=1)
+        cope_pkt.acks.append(ack)
+
+        self.assertEqual(len(str(cope_pkt)), 46)
 
 
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(TestCOPEPktClasses)
     unittest.TextTestRunner(verbosity=2).run(suite)
-    logger.debug("Tests run")
+    #logger.debug("Tests run")
 
 
 if __name__ == '__main__':

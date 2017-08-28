@@ -1,23 +1,23 @@
 import unittest
-import mock
+from unittest.mock import Mock
 import nc_shared_state
 import nc_packet_dispatcher
-import COPE_packet_classes as COPE_classes
-import scapy.all as scapy
+from pypacker.layer12 import cope
 import logging
 import logging.config
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('nc_node.test_ncpacketdispatcher')
+#logger =logging.getLogger('nc_node.test_ncpacketdispatcher')
 
 class TestPacketDispatcher(unittest.TestCase):
 
 	def test_dispatch(self):
 		sharedState = nc_shared_state.SharedState()
-		cope_pkt = COPE_classes.COPE_packet()
+		cope_pkt = cope.COPE_packet()
 		
 		sharedState.addPacketToOutputQueue("00:00:00:00:00:01", cope_pkt)
-		
-		mockEncoder = mock.Mock()
+		sharedState.min_buffer_len = 2
+
+		mockEncoder = Mock()
 		packetDispatcher = nc_packet_dispatcher.PacketDispatcher(sharedState, mockEncoder)
 		packetDispatcher.dispatch()
 
@@ -32,8 +32,9 @@ class TestPacketDispatcher(unittest.TestCase):
 		
 	def test_not_dispatch(self):
 		sharedState = nc_shared_state.SharedState()
+		sharedState.min_buffer_len = 2
 		
-		mockEncoder = mock.Mock()
+		mockEncoder = Mock()
 
 		packetDispatcher = nc_packet_dispatcher.PacketDispatcher(sharedState, mockEncoder)
 		packetDispatcher.dispatch()
@@ -43,7 +44,7 @@ class TestPacketDispatcher(unittest.TestCase):
 def main():
 	suite = unittest.TestLoader().loadTestsFromTestCase(TestPacketDispatcher)
 	unittest.TextTestRunner(verbosity=2).run(suite)
-	logger.debug("Tests run")
+	#logger.debug("Tests run")
 
 if __name__ == '__main__':
 	main()
