@@ -24,7 +24,6 @@ import pickle
 import asyncio
 
 packetDispatcher = None
-network_node_list = list(["10.0.0.1", "10.0.0.2"])
 streamHandlers = list()
 
 def setup_NCNode(sharedState):
@@ -35,29 +34,9 @@ def setup_NCNode(sharedState):
     acksReceipts = ACKsReceipts(sharedState, decoder)
     networkListener = NetworkListener(sharedState, acksReceipts)
 
-    # Input side
-    # sharedState.ip_to_mac["10.0.0.2"] = "00:00:00:00:00:02"
-    # sharedState.ip_to_mac["10.0.0.1"] = "00:00:00:00:00:01"
-    # This is done by reading network config from python mininet topo script
     encapsulator = nc_encapsulator.Encapsulator(sharedState, enqueuer)
 
-    # TODO: Improve this, this should not be hardcoded
-    global network_node_list, streamHandlers
     print(sharedState.get_my_ip_addr())
-
-
-    # Remove node IP if in network node list:
-    if sharedState.get_my_ip_addr() in network_node_list:
-        network_node_list.remove(sharedState.get_my_ip_addr())
-
-
-    # Start listener on each port that represents a node in the network
-    for ip_addr in network_node_list:
-        listener_port = network_utils.ipToListenerPort(ip_addr)
-        #logger.debug("Starting streamHandler on ")
-        streamHandler = nc_udpstreamreader.UDPStreamHandler(sharedState, listener_port, encapsulator)
-        streamHandler.start()
-        streamHandlers.append(streamHandler)
 
     # Sender side
     global packetDispatcher
@@ -69,8 +48,6 @@ def setup_NCNode(sharedState):
     # Test with valid networkInstance
     networkInstanceAdapter = NetworkInstanceAdapter(network_utils.get_first_NicName())
     sharedState.networkInstance = networkInstanceAdapter
-    appInstance = nc_app_instance.ApplicationInstanceAdapter(sharedState)
-    sharedState.appInstance = appInstance
 
     sharedState.setPacketDispatcher(packetDispatcher)
 

@@ -27,8 +27,8 @@ def test_crchash():
 
 
 def crc_checksum(msg):
-    if type(msg) == str:
-        raise Exception("Did not expect string, cast to bytes before calculation")
+    # if type(msg) == str:
+        # raise Exception("Did not expect string, cast to bytes before calculation")
 
     # print(msg)
     # Ignore last two bytes, i.e. checksum field

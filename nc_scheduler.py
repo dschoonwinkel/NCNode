@@ -4,6 +4,7 @@ import logging.config
 import time
 logging.config.fileConfig('logging.conf')
 
+
 class ControlPktWaiter(threading.Thread):
 
     def __init__(self, sharedState):
@@ -13,7 +14,7 @@ class ControlPktWaiter(threading.Thread):
         self.startTime = time.time()
         self.daemon = True
 
-        self.logger =logging.getLogger('nc_node.ControlPktWaiter')
+        self.logger = logging.getLogger('nc_node.ControlPktWaiter')
 
 
     def stopWaiter(self):
@@ -26,7 +27,6 @@ class ControlPktWaiter(threading.Thread):
         self.stop_event.set()
         pass
 
-
     def run(self):
         self.logger.debug("Starting ControlPktWaiter")
         self.startTime = time.time()
@@ -38,7 +38,6 @@ class ControlPktWaiter(threading.Thread):
             self.stop_event.wait(self.sharedState.getControlPktTimeout())
             currentTime = time.time()
             # If it was the timeout, i.e. current_time > start_time + waittime, send control Pkt
-
 
             if currentTime > self.startTime + self.sharedState.getControlPktTimeout():
                 # self.logger.debug("Timeout has occured")
