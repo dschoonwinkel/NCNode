@@ -30,34 +30,45 @@ class Enqueuer(object):
             self.logger.critical("Encoded packet lengths in enqueuer should not be longer than 1: %d" % len(cope_packet.encoded_pkts))
             raise Exception("Encoded packet lengths too long")
 
-        # Steps for putting in stream orderer
-        # 1. Check the encoded header, if it is meant for me, pass it to app layer, and stop forwarding
+        # Steps for putting in stream orderer / nexthop queues
+        # Check if I should react to this packet
         if cope_packet.encoded_pkts[0].nexthop_s == self.sharedState.get_my_hw_addr():        # TODO: 6 us
-            self.logger.debug("Packet sent to stream orderer")
-            self.streamOrderer.order_stream(cope_packet)
-            return
+            self.logger.debug("I am the nexthop")
 
-        # Steps for forwarding:
-        # If it is a native packet, check IP address and forward to neighbour closest
+            # Steps for forwarding:
+            # If it is a native packet, and I am nexthop, check IP address and forward to neighbour closest
 
-        if len(cope_packet.encoded_pkts) == 1:                                                  # TODO: 3.5 us
-            self.logger.debug("Forwarding packet")
+            ip_pkt = cope_packet[ip.IP]
 
-            # Check the IP dst address, if in sharedState dict, will use correct MAC address for forwarding
-            ip_pkt = cope_packet[ip.IP]                     # TODO: 1.5 us
+            # Check if the COPE packet contains a IP packet
+            if ip_pkt:
+                # 1. Check the encoded IP dest, if it is meant for me, pass it to app layer, and stop forwarding
+                if ip_pkt.dst_s == self.sharedState.get_my_ip_addr():
+                    self.logger.debug("The IP packet was meant for me")
+                    self.streamOrderer.order_stream(cope_packet)
 
-            # If valid IP pkt, check address
-            if ip_pkt:                                                                          # TODO: 77 ns
+                # 2. If not for me, check the final IP dest, and forward to nearest nexthop.
                 # 	If IP address known to us, i.e. closest neighbour known
-                if ip_pkt.dst_s in self.sharedState.ip_to_mac:                                    # TODO 5.5 us
-                    dst_hw_addr = self.sharedState.getMACFromIP(ip_pkt.dst_s)                     # TODO 6.5 us
+                if ip_pkt.dst_s in self.sharedState.ip_to_mac:  # TODO 5.5 us
+                    dst_hw_addr = self.sharedState.getMACFromIP(ip_pkt.dst_s)  # TODO 6.5 us
                     # Update nexthop, so that the next neighbour in the chain will process the packet
-                    cope_packet.encoded_pkts[0].nexthop_s = dst_hw_addr                         # TODO 12.5 us
+                    cope_packet.encoded_pkts[0].nexthop_s = dst_hw_addr  # TODO 12.5 us
                     self.sharedState.times["Enqueuer processed"].append(time.time())
-                    self.sharedState.addPacketToOutputQueue(dst_hw_addr, cope_packet)           # TODO 1.7 us
+                    self.sharedState.addPacketToOutputQueue(dst_hw_addr, cope_packet)  # TODO 1.7 us
                     # cope_packet.show2()                                                       # TODO 2.7 ms
-                # If IP address is not know, forward to everyone
+                # If IP address is not know, (forward to everyone)
                 else:
                     self.logger.error("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst)
                     raise Exception("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst_s)
                     # self.sharedState.addPacketToOutputQueue(self.broadcast_HWAddr, cope_packet)
+
+
+            if len(cope_packet.encoded_pkts) == 1:                                                  # TODO: 3.5 us
+                self.logger.debug("Forwarding packet")
+
+                # Check the IP dst address, if in sharedState dict, will use correct MAC address for forwarding
+                ip_pkt = cope_packet[ip.IP]                     # TODO: 1.5 us
+
+                # If valid IP pkt, check address
+                if ip_pkt:                                                                          # TODO: 77 ns
+

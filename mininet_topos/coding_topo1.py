@@ -81,15 +81,17 @@ def codingNet():
     h2.cmd(
         "xterm -fg black -bg yellow -geometry 80x12+950+550 -e \"bash ITGSend.bash 10.0.0.2 10.0.0.1 10001 ; bash\" &")
 
+
+    time.sleep(4)
+    # h1.cmd("killall -signal SIGINT ITGRecvDump")
+    # h1.cmd("killall -signal SIGINT python3")
+    h1.cmd("killall tcpdump")
+
     info( '*** Running CLI\n' )
     CLI( net )
 
     info( '*** Stopping network' )
     net.stop()
-
-    h1.cmd("killall -signal SIGINT ITGRecvDump")
-    h1.cmd("killall -signal SIGINT python3")
-    h1.cmd("killall tcpdump")
 
     os.system("killall -signal SIGINT xterm")
     os.system("echo \"cmp 10.0.0.1\"")
@@ -104,5 +106,5 @@ def codingNet():
 
 if __name__ == '__main__':
     setLogLevel( 'info' )
-    # clean_up_aux_files()
+    clean_up_aux_files()
     codingNet()

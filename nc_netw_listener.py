@@ -4,7 +4,7 @@ from pypacker.layer12 import ethernet, cope
 import socket
 import logging
 import crc_funcs
-pkt_count = 0
+
 import coding_utils
 
 # If the nc_netw_listener is running on client, not switch,
@@ -18,7 +18,6 @@ class NetworkListenerHelper(threading.Thread):
         self.logger = logging.getLogger('nc_node.NetworkListenerHelper')
 
     def run(self):
-        global pkt_count
         listener_socket = None
         try: 
             listener_socket = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(0x003))
@@ -40,7 +39,6 @@ class NetworkListenerHelper(threading.Thread):
                     # self.logger.debug(ether_pkt.bin())
                     self.listener.receivePkt(ether_pkt)
                     # print(coding_utils.print_hex("Raw packet", packet))
-                    self.logger.debug("Packet count %d" % pkt_count)
                     pass
 
             self.logger.debug("Stopping listener networkInstance graciously")
