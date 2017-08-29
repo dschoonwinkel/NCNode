@@ -75,7 +75,7 @@ def codingNet():
     h2.cmd("xterm -fg black -bg yellow -geometry 80x12+950+400 -e \"bash ITGRecv_dump.bash; bash\" &")
     h1.cmd("xterm -fg black -bg cyan -geometry 80x12+950+250 -e \"bash ITGRecv_dump.bash; bash\" &")
 
-    time.sleep(2)
+    time.sleep(3)
 
     h1.cmd("xterm -fg black -bg cyan -geometry 80x12+950+0 -e \"bash ITGSend.bash 10.0.0.1 10.0.0.2 10002 ; bash\" &")
     h2.cmd(

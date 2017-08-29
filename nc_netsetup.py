@@ -43,7 +43,7 @@ def writeNetworkConfig():
 
     addr_dict = dict()
     addr_dict[addr_h1[0]] = [(addr_h2[0], addr_coding1[1])]
-    addr_dict[addr_h2[0]] = [(addr_h2[0], addr_coding1[1])]
+    addr_dict[addr_h2[0]] = [(addr_h1[0], addr_coding1[1])]
     addr_dict[addr_coding1[0]] = [addr_h1, addr_h2]
 
     print(addr_dict)

@@ -23,6 +23,8 @@ class Encapsulator(object):
         local_seq_no = self.sharedState.getAndIncrementLocalSeqNum()                        # TODO 422 ns
         pkt_id = COPE_packet.generatePktId(src_ip, local_seq_no)                           # TODO 3 us
 
+        self.logger.debug("Encaps Pkt_id %d" % pkt_id)
+
         self.sharedState.times["Encapsulator processed0"].append(time.time())
         cope_pkt = COPE_packet() + IP(src_s=src_ip, dst_s=IP_addr, id=local_seq_no) + UDP(sport=11777, dport=14541)  # TODO 90 us
         self.sharedState.times["Encapsulator processed1"].append(time.time())
@@ -32,7 +34,7 @@ class Encapsulator(object):
 
         # Use broadcast address as "empty" addr field
         #cope_pkt.encoded_pkts = list()                                                      # TODO 14 us
-        cope_pkt.encoded_pkts.append(EncodedHeader(pkt_id=pkt_id, nexthop_s=self.broadcast_HWAddr))
+        cope_pkt.encoded_pkts.append(EncodedHeader(pkt_id=pkt_id, nexthop_s=self.sharedState.get_my_hw_addr()))
         cope_pkt.local_pkt_seq_num = local_seq_no           # TODO 4.91 us per loop
 
         self.sharedState.times["Encapsulator processed2"].append(time.time())                # TODO 613 ns

@@ -102,7 +102,7 @@ class SharedState(object):
         self.logger =logging.getLogger('nc_node.ncSharedState')
         self.packetDispatcher = None
 
-        self.ip_to_mac = nc_netsetup.readNetworkLayout()
+        self.ip_to_mac = nc_netsetup.readNetworkRoutingJSON(self.my_ip_addr)
 
         self.event_loop = None
 
