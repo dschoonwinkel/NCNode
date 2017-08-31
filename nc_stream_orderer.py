@@ -16,5 +16,9 @@ class StreamOrderer(object):
 		appInstance = self.sharedState.getAppInstance()
 
 		if appInstance:
+			self.logger.debug("Sending packet to app instance")
 			appInstance.trafficOut(cope_packet)
 			self.sharedState.incrementTrafficPktsOut()
+
+		else:
+			self.logger.error("No App Instance found")

@@ -43,7 +43,9 @@ def setup_NCNode(sharedState):
 
     # TODO: Improve this, this should not be hardcoded
     global network_node_list, streamHandlers
-    print(sharedState.get_my_ip_addr())
+
+    print("My IP Addr: %s" % sharedState.get_my_ip_addr())
+    print("My min_buffer_len: %d" % sharedState.min_buffer_len)
 
 
     # Remove node IP if in network node list:

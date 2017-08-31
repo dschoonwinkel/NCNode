@@ -31,6 +31,7 @@ class Encoder(object):
         self.logger.debug("Packet queues ready: %s" % str(packet_queues_ready))
 
 
+        # IF POSSIBLE, ENCODE
         # If there is at least 1 packet to code together
         if packet_queues_ready and len(packet_queues_ready) >= 1:
             self.logger.debug("Starting coding process")
@@ -42,12 +43,18 @@ class Encoder(object):
             if len(pkt.encoded_pkts) >= 1:
                 cope_pkts.append(pkt)
 
+                # self.logger.debug("Cope pkt list before peeking from queues:  %s " % cope_pkts)
+
 
             for i in range(len(packet_queues_ready)):
                 if self.sharedState.peekPacketFromQueue(packet_queues_ready[i]):
                     cope_pkts.append(self.sharedState.peekPacketFromQueue(packet_queues_ready[i]))
 
+            # self.logger.debug("Cope pkt list after peeking from queues:  %s " % cope_pkts)
+
             valid_codables, rest_pkts = self.findCodables(cope_pkts)
+
+            # self.logger.debug("Valid codables :  %s " % valid_codables)
 
             # Create a new encoded packet, starting with original packet
             coded_pkt = cope.COPE_packet()
@@ -61,8 +68,22 @@ class Encoder(object):
                     coded_pkt.encoded_pkts.append(cope_pkt.encoded_pkts[0])
                     coded_payload = coding_utils.bytexor(coded_payload, cope_pkt.body_bytes)
 
+                    # Remove all the cope_pkts from the output queues, except the original pkt (already removed)
+                    if cope_pkt.encoded_pkts[0].nexthop_s != pkt.encoded_pkts[0].nexthop_s:
+                        self.sharedState.getPacketFromQueue(cope_pkt.encoded_pkts[0].nexthop_s)
+                        # Remove extra packets from queues and output queue order
+                        self.logger.debug("Len of packet_queues %d " % len(self.sharedState.packet_queues))
+                        self.logger.debug("Keys of packet_queues %s " % len(self.sharedState.packet_queues.keys()))
+                        self.logger.debug("Output queue order %s" % self.sharedState.output_queue_order)
+                        self.logger.debug("Value to remove: %s" % cope_pkt.encoded_pkts[0].nexthop_s)
+
+
+
+
+
             # If the packet cannot be coded with any other packet
             else:
+                self.logger.debug("No valid codables, sending native pkt")
                 if len(pkt.encoded_pkts) > 0:
                     coded_pkt.encoded_pkts.append(pkt.encoded_pkts[0])
                     coded_payload = pkt.body_bytes
@@ -73,6 +94,8 @@ class Encoder(object):
             self.sharedState.times["Encoder processed"].append(time.time())
             self.addACksRecps.addACKsRecps(coded_pkt)
 
+
+        # ELSE: SEND UNCODED
         # Else: if output queue is long enough send uncoded immediately
         else:
             self.sharedState.times["Encoder processed"].append(time.time())

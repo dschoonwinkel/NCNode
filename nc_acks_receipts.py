@@ -22,12 +22,16 @@ class ACKsReceipts(object):
         if cope_pkt:
             for ack in cope_pkt.acks:
                 self.logger.info("processing ACK %d" % ack.last_ack)
-                self.sharedState.updateACKwaiters(ack, from_neighbour)
+                self.sharedState.updateACKwaiters(ack, from_neighbour.upper())
 
             for report in cope_pkt.reports:
                 self.sharedState.updateRecpReports(report)
 
-            self.decoder.decode(cope_pkt, from_neighbour)
+            try:
+                self.decoder.decode(cope_pkt, from_neighbour.upper())
+            except Exception as e:
+                self.logger.error("Error occured at decode(): %s" % e)
+
 
         else:
             self.logger.error("Could not use COPE packet, probably incorrect packet format")

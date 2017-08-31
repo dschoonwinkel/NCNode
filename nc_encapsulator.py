@@ -17,6 +17,7 @@ class Encapsulator(object):
         self.broadcast_HWAddr = "ff:ff:ff:ff:ff:ff"
 
     def encapsulate(self, data, IP_addr):
+        self.logger.debug("\n\n")
         self.logger.debug("Got packet to encapsulate")
 
         src_ip = self.sharedState.get_my_ip_addr()                                          # TODO 303 ns

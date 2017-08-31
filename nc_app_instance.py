@@ -6,7 +6,8 @@ import nc_shared_state
 from pypacker.layer12 import cope, ethernet
 from pypacker.layer3 import ip
 logging.config.fileConfig('logging.conf')
-import coding_utils
+import traceback, sys
+
 
 class ApplicationInstanceAdapter(object):
     def __init__(self, sharedState):
@@ -22,6 +23,17 @@ class ApplicationInstanceAdapter(object):
         # self.logger.debug(coding_utils.print_hex("Pkt payload", str(pkt.payload)))
         # TODO: This might be unnecessary, used in legacy scapy implementation to check for a data packet.
         ip_pkt = pkt[ip.IP]
+
+        if not ip_pkt:
+            self.logger.debug("Could not get ip pkt, retrying body_bytes")
+            try:
+                ip_pkt = ip.IP(pkt.body_bytes)
+                # print(ip_pkt2)
+
+            except Exception as e:
+                self.logger.error("Error in decoding IP packet %s " % e)
+                traceback.print_exc(file=sys.stdout)
+
         if ip_pkt:
             #ip_pkt.show2()
             my_ip = self.sharedState.get_my_ip_addr()
@@ -32,6 +44,11 @@ class ApplicationInstanceAdapter(object):
             # self.logger.debug(coding_utils.print_hex("Message: ", message))
 
             self.sock.sendto(bytes(message), (localhost, my_output_port))
+
+        else:
+            self.logger.error("Could not find IP packet to send to app instance")
+
+
 
 def main():
     sharedState = nc_shared_state.SharedState()

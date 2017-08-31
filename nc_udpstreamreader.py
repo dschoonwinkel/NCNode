@@ -47,6 +47,7 @@ class UDPStreamHandler(threading.Thread):
             # self.logger.debug(coding_utils.print_hex("Received data", data))
 
             self.sharedState.times["Streamreader received"].append(time.time())
+            self.logger.debug("UDPStream received packet for %s" % UDPPortToIP.ip_from_udpport(self.listening_port))
             self.encapsulator.encapsulate(data, UDPPortToIP.ip_from_udpport(self.listening_port))
 
 def main():

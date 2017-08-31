@@ -12,7 +12,7 @@ def print_hex(title, payload):
     if type(payload) == str:
         hextext = title + ' '.join('%02X' % ord(x) for x in str(payload))
         return hextext
-    elif type(payload) == bytes:
+    elif isinstance(payload, (bytes, bytearray)):
         hextext = title + ' '.join('%02X' % x for x in payload)
         return hextext
     else:
@@ -75,6 +75,9 @@ def strxor(s0, s1):
     return ''.join(l)
 
 def bytexor(b0, b1):
+
+    # print("Type b0", type(b0))
+    # print("Type b1", type(b1))
 
     b0 = bytearray(b0)
     b1 = bytearray(b1)

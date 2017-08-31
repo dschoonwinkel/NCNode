@@ -41,28 +41,44 @@ class Enqueuer(object):
                 # If it is a native packet, and I am nexthop, check IP address and forward to neighbour closest
 
                 ip_pkt = cope_packet[ip.IP]
+                try:
+                    ip_pkt2 = ip.IP(cope_packet.body_bytes)
+                    # print(ip_pkt2)
 
-                # Check if the COPE packet contains a IP packet
-                if ip_pkt:
-                    # 1. Check the encoded IP dest, if it is meant for me, pass it to app layer, and stop forwarding
-                    if ip_pkt.dst_s == self.sharedState.get_my_ip_addr():
-                        self.logger.debug("The IP packet was meant for me")
-                        self.streamOrderer.order_stream(cope_packet)
+                    # Check if the COPE packet contains a IP packet
+                    if ip_pkt2:
+                        ip_pkt = ip_pkt2
+                        # 1. Check the encoded IP dest, if it is meant for me, pass it to app layer, and stop forwarding
+                        if ip_pkt.dst_s == self.sharedState.get_my_ip_addr():
+                            self.logger.debug("The IP packet was meant for me")
+                            self.streamOrderer.order_stream(cope_packet)
+                            # Add to local Packet Pool as well, for use in decoding later
+                            self.sharedState.addPacketToPacketPool(cope_packet.encoded_pkts[0].pkt_id, cope_packet)
 
-                    # 2. If not for me, check the final IP dest, and forward to nearest nexthop.
-                    # 	If IP address known to us, i.e. closest neighbour known
-                    elif ip_pkt.dst_s in self.sharedState.ip_to_mac:  # TODO 5.5 us
-                        dst_hw_addr = self.sharedState.getMACFromIP(ip_pkt.dst_s)  # TODO 6.5 us
-                        # Update nexthop, so that the next neighbour in the chain will process the packet
-                        cope_packet.encoded_pkts[0].nexthop_s = dst_hw_addr  # TODO 12.5 us
-                        self.sharedState.times["Enqueuer processed"].append(time.time())
-                        self.sharedState.addPacketToOutputQueue(dst_hw_addr, cope_packet)  # TODO 1.7 us
-                        # cope_packet.show2()                                                       # TODO 2.7 ms
-                    # If IP address is not know, (forward to everyone)
+                        # 2. If not for me, check the final IP dest, and forward to nearest nexthop.
+                        # 	If IP address known to us, i.e. closest neighbour known
+                        elif ip_pkt.dst_s in self.sharedState.ip_to_mac:  # TODO 5.5 us
+                            dst_hw_addr = self.sharedState.getMACFromIP(ip_pkt.dst_s)  # TODO 6.5 us
+                            # Update nexthop, so that the next neighbour in the chain will process the packet
+                            cope_packet.encoded_pkts[0].nexthop_s = dst_hw_addr  # TODO 12.5 us
+                            self.sharedState.times["Enqueuer processed"].append(time.time())
+                            self.sharedState.addPacketToOutputQueue(dst_hw_addr, cope_packet)  # TODO 1.7 us
+                            # Add to local Packet Pool as well, for use in decoding later
+                            self.sharedState.addPacketToPacketPool(cope_packet.encoded_pkts[0].pkt_id, cope_packet)
+                            # cope_packet.show2()                                                       # TODO 2.7 ms
+                        # If IP address is not know, (forward to everyone)
+                        else:
+                            self.logger.error("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst_s)
+                            raise Exception("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst_s)
+                            # self.sharedState.addPacketToOutputQueue(self.broadcast_HWAddr, cope_packet)
+
                     else:
-                        self.logger.error("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst_s)
-                        raise Exception("IP dest not found in ip_to_mac for ip: %s" % ip_pkt.dst_s)
-                        # self.sharedState.addPacketToOutputQueue(self.broadcast_HWAddr, cope_packet)
+                        self.logger.error("IP packet not found in packet")
+                        self.logger.error(cope_packet)
+
+                except Exception as e:
+                    self.logger.error("Error in decoding IP packet %s " % e)
+                    traceback.print_exc(file=sys.stdout)
 
             else:
                 raise Exception("Packets not meant for me should not arrive at the enquerer")

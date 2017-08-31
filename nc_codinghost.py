@@ -36,7 +36,8 @@ def setup_NCNode(sharedState):
 
     encapsulator = nc_encapsulator.Encapsulator(sharedState, enqueuer)
 
-    print(sharedState.get_my_ip_addr())
+    print("My IP Addr: %s" % sharedState.get_my_ip_addr())
+    print("My min_buffer_len: %d" % sharedState.min_buffer_len)
 
     # Sender side
     global packetDispatcher

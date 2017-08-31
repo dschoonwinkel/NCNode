@@ -34,11 +34,13 @@ class NetworkListenerHelper(threading.Thread):
 
 
                 if ether_pkt.type == cope.COPE_PACKET_TYPE and ether_pkt.src_s != self.sharedState.get_my_hw_addr():
-                    self.logger.debug("COPE packet received" )
-                    # self.logger.debug(str(ether_pkt))
-                    # self.logger.debug(ether_pkt.bin())
-                    self.listener.receivePkt(ether_pkt)
-                    # print(coding_utils.print_hex("Raw packet", packet))
+                #     self.logger.debug("COPE packet received" )
+                #     # self.logger.debug(ether_pkt.bin())
+                    try:
+                        self.listener.receivePkt(ether_pkt)
+                    except:
+                        self.logger.error("Error occured at receivePkt()")
+                #     # print(coding_utils.print_hex("Raw packet", packet))
                     pass
 
             self.logger.debug("Stopping listener networkInstance graciously")
@@ -95,10 +97,12 @@ class NetworkListener(object):
         else:
             self.sharedState.incrementPacketRecv()
 
-        self.acksReceipts.processPkt(cope_pkt, from_neighbour)
+        try:
+            self.acksReceipts.processPkt(cope_pkt, from_neighbour)
+        except:
+            self.logger.error("Error occured at processPkt()")
 
-        # Should we drop all packets, and resend them from our controller?
-        # self.addACKsRecps.dropPkt(self.sharedState.pktid_to_bufferid[cope_pkt.encoded_pkts[0])
+
 
 def main():
     sharedState = SharedState()

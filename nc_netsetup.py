@@ -34,9 +34,15 @@ def readNetworkRoutingJSON(ip_addr):
 
     return ip_to_mac_table
 
+def readNetworkConfigJSON(ip_addr):
+    with open('network_config.json', 'r') as jsonfile:
+        config_dict = json.load(jsonfile)
+
+    return config_dict[ip_addr]
+
     
 
-def writeNetworkConfig():
+def writeNetworkRoutingJSON():
     addr_h1 = ('10.0.0.1','00:00:00:00:00:01')
     addr_h2 = ('10.0.0.2','00:00:00:00:00:02')
     addr_coding1 = ('10.0.1.1','00:00:ff:00:00:01')
@@ -51,11 +57,29 @@ def writeNetworkConfig():
     with open('network_routing.json', 'w') as jsonfile:
         json.dump(addr_dict, jsonfile, indent=2)
 
+def writeNetworkConfigJSON(codinghosts_buflen=2):
+    addr_h1 = '10.0.0.1'
+    addr_h2 = '10.0.0.2'
+    addr_coding1 = '10.0.1.1'
+    min_buf_len_key = 'min_buffer_len'
+
+    config_dict = dict()
+    config_dict[addr_h1] = {min_buf_len_key:1}
+    config_dict[addr_h2] = {min_buf_len_key: 1}
+    config_dict[addr_coding1] = {min_buf_len_key: codinghosts_buflen}
+
+    print(config_dict)
+
+    with open('network_config.json', 'w') as jsonfile:
+        json.dump(config_dict, jsonfile, indent=2)
+
 def main():
     pass
 
 if __name__ == '__main__':
     # main()
-    writeNetworkConfig()
+    writeNetworkRoutingJSON()
+    writeNetworkConfigJSON()
     print(readNetworkLayout())
     print(readNetworkRoutingJSON('10.0.1.1'))
+    print(readNetworkConfigJSON('10.0.1.1'))

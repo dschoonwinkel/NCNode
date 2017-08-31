@@ -10,10 +10,14 @@ from mininet.node import Controller, RemoteController
 from mininet.cli import CLI
 from mininet.log import setLogLevel, info
 import os, time
+import sys
+sys.path.append(".")
+
+import nc_netsetup
 
 def clean_up_aux_files():
     os.system("rm data_files/receiverdump_*.bin")
-    os.system("rm coding1_profile.txt")
+    os.system("rm profiling/coding*_profile.txt")
     os.system("rm profiling/h*_profile.txt")
     os.system("rm exec_times_*.log")
     os.system("rm logs/sender_*.log")
@@ -22,6 +26,11 @@ def clean_up_aux_files():
     os.system("rm logs/config.log")
 
 def codingNet():
+
+    packet_rate = 160
+    packet_size = 1200
+
+    nc_netsetup.writeNetworkConfigJSON(2)
 
     "Create an empty network and add nodes to it."
     net = Mininet( controller=RemoteController, autoSetMacs=True )
@@ -61,7 +70,9 @@ def codingNet():
     # h1.cmd("tcpdump -i lo -s 65535 -w dump_sender.pcap &")
     # h2.cmd("tcpdump -i lo -s 65535 -w dump_receiver.pcap &")
     h1.cmd("tcpdump -i h1-eth0 -s 65535 -w pcap_files/h1_dump.pcap &")
+    h1.cmd("tcpdump -i lo -s 65535 -w pcap_files/h1_localdump.pcap &")
     h2.cmd("tcpdump -i h2-eth0 -s 65535 -w pcap_files/h2_dump.pcap &")
+    h2.cmd("tcpdump -i lo -s 65535 -w pcap_files/h2_localdump.pcap &")
     coding1.cmd("tcpdump -i coding1-eth0 -s 65535 -w pcap_files/coding1_dump.pcap &")
 
     h1.cmd(
@@ -75,33 +86,42 @@ def codingNet():
     h2.cmd("xterm -fg black -bg yellow -geometry 80x12+950+400 -e \"bash ITGRecv_dump.bash; bash\" &")
     h1.cmd("xterm -fg black -bg cyan -geometry 80x12+950+250 -e \"bash ITGRecv_dump.bash; bash\" &")
 
-    time.sleep(3)
+    time.sleep(6)
 
-    h1.cmd("xterm -fg black -bg cyan -geometry 80x12+950+0 -e \"bash ITGSend.bash 10.0.0.1 10.0.0.2 10002 ; bash\" &")
+    h1.cmd("xterm -fg black -bg cyan -geometry 80x12+950+0 -e \"bash ITGSend.bash 10.0.0.1 10.0.0.2 10002 %d; bash\" &" % packet_rate)
     h2.cmd(
-        "xterm -fg black -bg yellow -geometry 80x12+950+550 -e \"bash ITGSend.bash 10.0.0.2 10.0.0.1 10001 ; bash\" &")
+        "xterm -fg black -bg yellow -geometry 80x12+950+550 -e \"bash ITGSend.bash 10.0.0.2 10.0.0.1 10001 %d; bash\" &" % packet_rate)
 
 
     time.sleep(4)
-    # h1.cmd("killall -signal SIGINT ITGRecvDump")
-    # h1.cmd("killall -signal SIGINT python3")
+    h1.cmd("killall -signal SIGINT ITGRecvDump")
+    h1.cmd("killall -signal SIGINT python3")
     h1.cmd("killall tcpdump")
 
-    info( '*** Running CLI\n' )
-    CLI( net )
+    # info( '*** Running CLI\n' )
+    # CLI( net )
 
     info( '*** Stopping network' )
     net.stop()
 
     os.system("killall -signal SIGINT xterm")
+
+    print("\n")
     os.system("echo \"cmp 10.0.0.1\"")
-    os.system("cmp -n 300000 data_files/random1M.txt data_files/receiverdump_10.0.0.1.bin")
+    os.system("cmp -n %d data_files/random1M.txt data_files/receiverdump_10.0.0.1.bin" % (packet_rate * packet_size))
     os.system("echo \"cmp 10.0.0.2\"")
-    os.system("cmp -n 300000 data_files/random1M.txt data_files/receiverdump_10.0.0.2.bin")
+    os.system("cmp -n %d data_files/random1M.txt data_files/receiverdump_10.0.0.2.bin" % (packet_rate * packet_size))
+    print("\n\n")
+
     os.system("ls -l data_files/")
+    print("\n\n")
+
+
     os.system("python3 parse_exec_times.py exec_times_10.0.0.1.log")
-    os.system("ITGDec logs/sender_10.0.0.1.log | tail -n 16")
-    os.system("ITGDec logs/receiver_10.0.0.1.log | tail -n 16")
+
+    print("\n\n")
+    os.system("ITGDec logs/sender_10.0.0.1.log | tail -n 16 | sed -n -e 3,4p -e 11,12p -e 16p")
+    os.system("ITGDec logs/receiver_10.0.0.1.log | tail -n 16 | sed -n -e 3,4p -e 11,12p -e 16p")
 
 
 if __name__ == '__main__':

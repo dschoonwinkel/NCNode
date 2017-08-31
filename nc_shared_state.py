@@ -47,9 +47,8 @@ class SharedState(object):
         self.my_hw_addr = network_utils.get_first_HWAddr()
         self.my_nic_name = network_utils.get_first_NicName()
         self.my_ip_addr = network_utils.get_first_IPAddr()
-        self.ack_retries = 1                         # number of retries before ACK waiter thread stops retransmitting
-        self.controlPktTimeout = 1                   # Timeout to wait for before acks and reports are sent as control packets
-        self.min_buffer_len = 1                      # The minimum number of packet to be buffered before transmission starts
+        self.ack_retries = 0                         # number of retries before ACK waiter thread stops retransmitting
+        self.controlPktTimeout = 10                   # Timeout to wait for before acks and reports are sent as control packets
         self.ack_retry_time = 10
         self.mac_to_port = dict()                    # dict(mac_addr, int) -- switch port on which to send out on, i.e. routing
         self.ip_to_mac = dict()                      # dict(IP, mac_addr) -- which MAC addr is closest to this IP, implicitly, which port should it be sent on. Used for routing
@@ -103,6 +102,7 @@ class SharedState(object):
         self.packetDispatcher = None
 
         self.ip_to_mac = nc_netsetup.readNetworkRoutingJSON(self.my_ip_addr)
+        self.min_buffer_len = nc_netsetup.readNetworkConfigJSON(self.my_ip_addr)['min_buffer_len']  # The minimum number of packet to be buffered before transmission starts
 
         self.event_loop = None
 
@@ -205,6 +205,12 @@ class SharedState(object):
                         self.neighbour_recvd[neighbour].add(ack_waiter.pkt.get_pktid(neighbour))
                         ack_waiter.stopWaiter()
 
+    def updateNeighbourReceived(self, neighbour, pkt_id):
+        if neighbour.upper() not in self.neighbour_recvd:
+            self.neighbour_recvd[neighbour.upper()] = set()
+
+        self.neighbour_recvd[neighbour.upper()].add(pkt_id)
+
     def popACKReport(self):
         return self.ack_queue.pop()
 
@@ -292,7 +298,9 @@ class SharedState(object):
         for key in self.packet_queues.keys():
             # Ensure that only different destinations are coded together
             if key.upper() not in packet_queues_ready and key.upper() != first_addr:
-                packet_queues_ready.append(key)
+                # Check if these queues have packets?
+                if len(self.packet_queues[key]) > 0:
+                    packet_queues_ready.append(key)
 
         return packet_queues_ready
 
