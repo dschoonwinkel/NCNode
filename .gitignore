@@ -1,1 +1,13 @@
+#Python files
 *.pyc
+
+
+
+#Logs
+*.log
+
+#Packet captures
+*.pcap
+
+#Binary files
+*.bin
