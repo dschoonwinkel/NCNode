@@ -20,14 +20,21 @@ def clean_up_aux_files():
     os.system("rm profiling/coding*_profile.txt")
     os.system("rm profiling/h*_profile.txt")
     os.system("rm exec_times_*.log")
-    os.system("rm logs/sender_*.log")
-    os.system("rm logs/receiver_*.log")
+    # os.system("rm logs/sender_*.log")
+    # os.system("rm logs/receiver_*.log")
     os.system("rm pcap_files/*_dump.pcap")
     os.system("rm logs/config.log")
 
 def codingNet():
 
-    packet_rate = 160
+    packet_rate = 1
+
+    if len(sys.argv) > 1:
+        print("Using packet rate %s" % sys.argv[1])
+        packet_rate = int(sys.argv[1])
+
+
+    
     packet_size = 1200
 
     nc_netsetup.writeNetworkConfigJSON(2)
@@ -98,8 +105,8 @@ def codingNet():
     h1.cmd("killall -signal SIGINT python3")
     h1.cmd("killall tcpdump")
 
-    # info( '*** Running CLI\n' )
-    # CLI( net )
+    info( '*** Running CLI\n' )
+    CLI( net )
 
     info( '*** Stopping network' )
     net.stop()
@@ -120,7 +127,9 @@ def codingNet():
     os.system("python3 parse_exec_times.py exec_times_10.0.0.1.log")
 
     print("\n\n")
+    print("Sending side of 10.0.0.1")
     os.system("ITGDec logs/sender_10.0.0.1.log | tail -n 16 | sed -n -e 3,4p -e 11,12p -e 16p")
+    print("Receiving side of 10.0.0.2")
     os.system("ITGDec logs/receiver_10.0.0.1.log | tail -n 16 | sed -n -e 3,4p -e 11,12p -e 16p")
 
 
